@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Aprender redes, uma pergunta de cada vez</p>
+  <h1>NetLearn Battle</h1>
+  <p>Um jogo educativo sobre IPv4, IPv6 e ACLs para praticar conceitos de Redes de Computadores.</p>
+  <div class="actions">
+    <a class="button" href="{{ url_for('login') }}">Login</a>
+    <a class="button secondary" href="{{ url_for('register') }}">Registar</a>
+  </div>
+</section>
+<section class="card-grid two">
+  <a class="card link-card" href="{{ url_for('ranking') }}"><h2>Ranking Top 5</h2><p>Veja os melhores scores.</p></a>
+  <a class="card link-card" href="{{ url_for('rules') }}"><h2>Regras do jogo</h2><p>Conheça os níveis e a pontuação.</p></a>
+</section>
+{% endblock %}

@@ -1,0 +1,4 @@
+[
+  {"level": 5, "topic": "ACL simples", "question": "Uma ACL tem a regra: permit tcp 192.168.1.0/24 para 10.0.0.0/24 porta 80. Um pacote TCP de 192.168.1.20 para 10.0.0.8 porta 80 é?", "options": ["permit", "deny", "IPv6", "broadcast"], "correct_index": 0, "points_correct": 50, "points_wrong": -25},
+  {"level": 5, "topic": "ACL simples", "question": "Uma ACL permite apenas porta 80. Um pacote TCP para a porta 22 será?", "options": ["permit", "deny", "uma sub-rede", "um broadcast"], "correct_index": 1, "points_correct": 50, "points_wrong": -25}
+]

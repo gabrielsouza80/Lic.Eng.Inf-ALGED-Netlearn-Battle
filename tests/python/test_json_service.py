@@ -1,4 +1,4 @@
-"""Teste unitário simples para leitura e escrita de JSON."""
+"""[Secções 6, 7 e 38] Teste de leitura e escrita de JSON."""
 import os
 import tempfile
 import unittest

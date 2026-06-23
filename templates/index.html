@@ -1,3 +1,4 @@
+{# [Secções 1 e 4] Página inicial da aplicação. #}
 {% extends "base.html" %}
 {% block content %}
 <section class="hero">
@@ -10,7 +11,13 @@
   </div>
 </section>
 <section class="card-grid two">
-  <a class="card link-card" href="{{ url_for('ranking') }}"><h2>Ranking Top 5</h2><p>Veja os melhores scores.</p></a>
-  <a class="card link-card" href="{{ url_for('rules') }}"><h2>Regras do jogo</h2><p>Conheça os níveis e a pontuação.</p></a>
+  <a class="card link-card" href="{{ url_for('ranking') }}">
+    <h2>Ranking Top 5</h2>
+    <p>Veja os melhores scores.</p>
+  </a>
+  <a class="card link-card" href="{{ url_for('rules') }}">
+    <h2>Regras do jogo</h2>
+    <p>Conheça os níveis e a pontuação.</p>
+  </a>
 </section>
 {% endblock %}

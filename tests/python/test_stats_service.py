@@ -1,4 +1,4 @@
-"""Teste unitário simples para estatísticas."""
+"""[Secções 30 a 33 e 38] Testes unitários para estatísticas."""
 import unittest
 
 from services.stats_service import StatsService

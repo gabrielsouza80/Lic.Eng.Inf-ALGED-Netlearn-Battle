@@ -1,4 +1,4 @@
-"""Testes unitários simples para Queue e Stack."""
+"""[Secções 24, 25 e 38] Testes unitários de Queue e Stack."""
 import unittest
 
 from structures.queue import Queue

@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation    Recursos partilhados pelos testes Robot do NetLearn Battle.
+Documentation    [Secções 38 e 39] Recursos partilhados pelos testes Robot do NetLearn Battle.
 Library          SeleniumLibrary
 Library          Process
 Library          OperatingSystem
@@ -7,7 +7,7 @@ Library          DateTime
 Library          Collections
 
 *** Variables ***
-${BASE_URL}          http://127.0.0.1:5000
+${BASE_URL}          http://127.0.0.1:5002
 ${PASSWORD}          robot123
 ${VISUAL_SPEED}      700 milliseconds
 
@@ -28,7 +28,8 @@ Iniciar Ambiente de Teste
     Set Suite Variable    ${TEST_USER}    aluno_robot_${timestamp}
     Set Suite Variable    ${NEW_USER}    novo_robot_${timestamp}
     # py -3 usa o Python normal do Windows, onde Flask foi instalado.
-    Start Process    py    -3    app.py    cwd=${project_dir}    alias=flask    env:NETLEARN_DATA_DIR=${data_dir}    stdout=${CURDIR}${/}..${/}results${/}flask-output.log    stderr=${CURDIR}${/}..${/}results${/}flask-error.log
+    # A porta 5002 evita conflito com a aplicação normal na porta 5000.
+    Start Process    py    -3    app.py    cwd=${project_dir}    alias=flask    env:NETLEARN_DATA_DIR=${data_dir}    env:FLASK_PORT=5002    stdout=${CURDIR}${/}..${/}results${/}flask-output.log    stderr=${CURDIR}${/}..${/}results${/}flask-error.log
     Open Browser    about:blank    chrome
     Maximize Browser Window
     Set Selenium Speed    ${VISUAL_SPEED}

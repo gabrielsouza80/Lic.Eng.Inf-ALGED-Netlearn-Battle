@@ -1,1 +1,1 @@
-"""Regras do jogo separadas da interface de consola."""
+"""[Secção 3] Pasta de serviços com as regras do projeto."""

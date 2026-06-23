@@ -1,4 +1,4 @@
-"""Teste unitário simples para atualização de score."""
+"""[Secções 27, 28 e 38] Testes unitários para score e ranking."""
 import os
 import tempfile
 import unittest

@@ -1,4 +1,4 @@
-"""Funções pequenas para ler e guardar os ficheiros JSON do projeto."""
+"""[Secções 6 e 7] Leitura e escrita dos ficheiros JSON do projeto."""
 import json
 import os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -12,7 +12,7 @@ def file_path(filename):
 
 
 def load(filename, default):
-    """Lê um JSON. Se ainda não existir, cria-o com o valor default."""
+    """[Secção 6] Lê JSON; se não existir, cria o ficheiro com default."""
     path = file_path(filename)
     if not os.path.exists(path):
         save(filename, default)
@@ -25,7 +25,7 @@ def load(filename, default):
 
 
 def save(filename, data):
-    """Guarda os dados recebidos no ficheiro JSON indicado."""
+    """[Secção 6] Guarda dados no ficheiro JSON indicado."""
     path = file_path(filename)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     temporary = path + ".tmp"

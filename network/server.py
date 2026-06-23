@@ -1,4 +1,4 @@
-"""Servidor TCP simples que recebe e responde a mensagens JSON."""
+"""[Secções 35 a 37] Servidor TCP simples com mensagens JSON."""
 import json
 import os
 import socket
@@ -15,12 +15,12 @@ PORT = 5001
 
 
 def send_json(connection, message):
-    """Envia um objeto Python como uma linha JSON."""
+    """[Secção 36] Envia um objeto Python como uma linha JSON."""
     connection.sendall((json.dumps(message) + "\n").encode("utf-8"))
 
 
 def process_message(message):
-    """Responde aos tipos de mensagem pedidos no enunciado."""
+    """[Secção 36] Responde aos tipos de mensagem pedidos no enunciado."""
     message_type = message.get("type")
     if message_type == "AUTH_REQUEST":
         valid = AuthService().login(message.get("username", ""), message.get("password", ""))
@@ -31,6 +31,7 @@ def process_message(message):
             return {"type": "QUESTION_PUSH", "error": "Nível sem perguntas."}
         return {"type": "QUESTION_PUSH", "question": question}
     if message_type == "ANSWER_SUBMIT":
+        # É uma demonstração simples: num servidor real a resposta certa não viria do cliente.
         correct = message.get("selected_index") == message.get("correct_index")
         return {"type": "ANSWER_RESULT", "is_correct": correct}
     if message_type == "SCORE_UPDATE":

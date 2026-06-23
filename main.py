@@ -1,5 +1,10 @@
-"""Ponto de entrada da versão de consola, mantida apenas como alternativa."""
+"""[Secções 1 e 4] Ponto de entrada simples da aplicação web."""
+import os
 
-print("A versão principal do NetLearn Battle é a web.")
-print("Execute: python app.py")
-print("Depois abra: http://127.0.0.1:5000")
+from app import app
+
+
+if __name__ == "__main__":
+    # Permite usar tanto "python main.py" como "python app.py".
+    port = int(os.environ.get("FLASK_PORT", "5000"))
+    app.run(port=port)

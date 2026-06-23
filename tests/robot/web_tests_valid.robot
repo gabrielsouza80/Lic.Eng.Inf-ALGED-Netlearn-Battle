@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation    Fluxos válidos da aplicação web NetLearn Battle.
+Documentation    [Secções 38 e 39] Fluxos válidos da aplicação web NetLearn Battle.
 Resource         resources/common.resource
 Suite Setup      Iniciar Ambiente de Teste
 Suite Teardown   Terminar Ambiente de Teste

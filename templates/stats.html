@@ -1,18 +1,30 @@
+{# [Secções 30 a 33] Estatísticas calculadas a partir das tentativas. #}
 {% extends "base.html" %}
 {% block content %}
-<section class="page-heading"><p class="eyebrow">Resultados pessoais</p><h1>Estatísticas</h1></section>
+<section class="page-heading">
+  <p class="eyebrow">Resultados pessoais</p>
+  <h1>Estatísticas</h1>
+</section>
 {% if stats.total %}
 <section class="stat-grid">
-  <div class="stat" data-testid="stat-total"><span>Total</span><strong>{{ stats.total }}</strong></div><div class="stat" data-testid="stat-correct"><span>Certas</span><strong>{{ stats.correct }}</strong></div><div class="stat" data-testid="stat-wrong"><span>Erradas</span><strong>{{ stats.wrong }}</strong></div><div class="stat" data-testid="stat-accuracy"><span>Taxa global</span><strong>{{ stats.accuracy }}%</strong></div>
+  <div class="stat" data-testid="stat-total"><span>Total</span><strong>{{ stats.total }}</strong></div>
+  <div class="stat" data-testid="stat-correct"><span>Certas</span><strong>{{ stats.correct }}</strong></div>
+  <div class="stat" data-testid="stat-wrong"><span>Erradas</span><strong>{{ stats.wrong }}</strong></div>
+  <div class="stat" data-testid="stat-accuracy"><span>Taxa global</span><strong>{{ stats.accuracy }}%</strong></div>
 </section>
-<section class="card details"><h2>Tempo de resposta</h2><p>Média: <strong>{{ stats.mean_time }} s</strong></p><p>Mediana: <strong>{{ stats.median_time }} s</strong></p><p>Moda: <strong>{{ stats.mode_time }}{% if stats.mode_time is number %} s{% endif %}</strong></p><p>Tópico com mais dificuldade: <strong>{{ stats.weakest_topic }}</strong></p><p>Score atual: <strong>{{ score }} pontos</strong></p></section>
-<section class="card details"><h2>Taxa de acerto por nível</h2>{% for level, rate in stats.accuracy_by_level.items() %}<p>Nível {{ level }} <strong>{{ rate }}%</strong></p>{% endfor %}</section>
-<section class="card details"><h2>Taxa de acerto por tipo de pergunta</h2>{% for tipo, rate in stats.accuracy_by_type.items() %}<p>{{ tipo }} <strong>{{ rate }}%</strong></p>{% endfor %}</section>
-{% if stats.score_evolution %}
-<section class="card table-card"><h2>Evolução do score por sessão</h2>
-<div class="scroll"><table><thead><tr><th>Sessão</th><th>Data/hora</th><th>Nível</th><th>Pontos</th><th>Score final</th></tr></thead><tbody>
-{% for s in stats.score_evolution %}<tr><td>{{ s.session_id }}</td><td>{{ s.datetime }}</td><td>{{ s.level }}</td><td>{{ '%+d'|format(s.session_points) }}</td><td>{{ s.final_score }}</td></tr>{% endfor %}
-</tbody></table></div></section>
-{% endif %}
-{% else %}<section class="card"><p>Ainda não existem dados. <a href="{{ url_for('play') }}">Responda à primeira pergunta</a>.</p></section>{% endif %}
+<section class="card details">
+  <h2>Tempo de resposta</h2>
+  <p>Média: <strong>{{ stats.mean_time }} s</strong></p>
+  <p>Mediana: <strong>{{ stats.median_time }} s</strong></p>
+  <p>Moda: <strong>{{ stats.mode_time }}{% if stats.mode_time is number %} s{% endif %}</strong></p>
+  <p>Tópico com mais dificuldade: <strong>{{ stats.weakest_topic }}</strong></p>
+  <p>Score atual: <strong>{{ score }} pontos</strong></p>
+</section>
+<section class="card details">
+  <h2>Taxa de acerto por nível</h2>{% for level, rate in stats.accuracy_by_level.items() %}<p>Nível {{ level }}
+    <strong>{{ rate }}%</strong></p>{% endfor %}
+</section>
+{% else %}<section class="card">
+  <p>Ainda não existem dados. <a href="{{ url_for('play') }}">Responda à primeira pergunta</a>.</p>
+</section>{% endif %}
 {% endblock %}

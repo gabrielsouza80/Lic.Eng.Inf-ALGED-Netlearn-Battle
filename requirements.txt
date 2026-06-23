@@ -1,3 +1,4 @@
+# [Secções 4 e 39] Bibliotecas necessárias para a aplicação web e testes.
 Flask
 robotframework
 robotframework-seleniumlibrary

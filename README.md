@@ -18,9 +18,21 @@ Abra `http://127.0.0.1:5000` no navegador.
 
 Opcionalmente, pode definir `FLASK_SECRET_KEY` antes de iniciar a aplicação. Sem esta variável, é criada uma chave segura temporária.
 
-## Versão terminal
+## Ponto de entrada
 
-`main.py` foi mantido apenas como indicação para a versão principal. Para executar o projeto, use `python app.py`.
+Pode iniciar a aplicação com qualquer um destes comandos:
+
+```powershell
+python app.py
+```
+
+ou:
+
+```powershell
+python main.py
+```
+
+Ambos iniciam a aplicação web Flask.
 
 ## Ficheiros JSON
 
@@ -31,6 +43,16 @@ Opcionalmente, pode definir `FLASK_SECRET_KEY` antes de iniciar a aplicação. S
 - `data/acls.json`: perguntas fixas de ACL para o nível 5.
 
 As perguntas vêm de JSON para manter o projeto simples, previsível e fácil de validar.
+
+### Repor dados de utilização
+
+Para apagar apenas as contas, pontuações e tentativas criadas durante os testes ou utilização, com a aplicação Flask parada, execute:
+
+```powershell
+python reset_data.py
+```
+
+Escreva `SIM` para confirmar. Este comando limpa `users.json`, `scores.json` e `attempts.json`. Não altera `questions.json` nem `acls.json`, porque esses ficheiros contêm as perguntas do jogo.
 
 ## Login
 
@@ -88,7 +110,7 @@ python network/server.py
 python network/client.py
 ```
 
-O Flask usa a porta `5000` e o TCP usa a porta `5001`, por isso podem funcionar ao mesmo tempo. Não é um jogo online completo e não está integrado com a interface web.
+O Flask usa a porta `5000` e o TCP usa a porta `5001`, por isso podem funcionar ao mesmo tempo. Não é um jogo online completo e não está integrado com a interface web. A resposta TCP é apenas demonstrativa: num sistema real, o servidor guardaria a resposta correta sem a receber do cliente.
 
 ## Testes
 
@@ -118,7 +140,7 @@ Os resultados (`output.xml`, `log.html`, `report.html` e logs Flask) ficam em `t
 
 `web_tests_valid.robot` contém fluxos válidos: registo, login, jogo nos cinco níveis, histórico, estatísticas, ranking, professor e logout. `web_tests_invalids.robot` contém login inválido e acesso sem login às páginas protegidas.
 
-Os testes Robot iniciam e terminam a aplicação Flask automaticamente. O Chrome abre de forma visível para poder acompanhar a navegação. A velocidade visual é definida por `${VISUAL_SPEED}` em `resources/common.resource` e está em 700 milissegundos por ação. É necessário ter Google Chrome instalado. Não feche o Chrome manualmente: o Robot fecha-o no fim da execução.
+Os testes Robot iniciam e terminam a aplicação Flask automaticamente na porta `5002`, separada da aplicação normal na porta `5000`. O Chrome abre de forma visível para poder acompanhar a navegação. A velocidade visual é definida por `${VISUAL_SPEED}` em `resources/common.resource` e está em 700 milissegundos por ação. É necessário ter Google Chrome instalado. Não feche o Chrome manualmente: o Robot fecha-o no fim da execução.
 
 Se o Flask não iniciar, consulte `flask-error.log` na pasta de resultados do Robot para ver a causa.
 

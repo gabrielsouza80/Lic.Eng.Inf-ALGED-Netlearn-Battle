@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation    Fluxos inválidos e páginas protegidas do NetLearn Battle.
+Documentation    [Secções 13, 38 e 39] Fluxos inválidos e validações da aplicação web NetLearn Battle.
 Resource         resources/common.resource
 Suite Setup      Iniciar Ambiente de Teste
 Suite Teardown   Terminar Ambiente de Teste

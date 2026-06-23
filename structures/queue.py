@@ -1,8 +1,8 @@
-"""Fila Queue usada para organizar perguntas."""
+"""[Secção 24] Fila Queue usada para organizar perguntas."""
 
 
 class Queue:
-    """FIFO: a primeira pergunta a entrar é a primeira a sair."""
+    """[Secção 24] FIFO: a primeira pergunta a entrar é a primeira a sair."""
     def __init__(self):
         self._items = []
 

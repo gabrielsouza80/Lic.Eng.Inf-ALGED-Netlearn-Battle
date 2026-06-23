@@ -1,8 +1,10 @@
+{# [Secções 4 e 8] Formulário para criar uma conta. #}
 {% extends "base.html" %}
 {% block title %}Registar · NetLearn Battle{% endblock %}
 {% block content %}
 <section class="form-card">
-  <h1>Criar conta</h1><p>O utilizador deve ter pelo menos 3 caracteres e a password pelo menos 4.</p>
+  <h1>Criar conta</h1>
+  <p>O utilizador deve ter pelo menos 3 caracteres e a password pelo menos 4.</p>
   <form method="post">
     <label>Utilizador<input name="username" required minlength="3" autocomplete="username"></label>
     <label>Password<input type="password" name="password" required minlength="4" autocomplete="new-password"></label>

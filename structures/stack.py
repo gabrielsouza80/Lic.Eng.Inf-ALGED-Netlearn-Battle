@@ -1,8 +1,8 @@
-"""Pilha Stack usada para guardar tentativas antes da persistência."""
+"""[Secção 25] Pilha Stack usada para guardar tentativas."""
 
 
 class Stack:
-    """LIFO: a última tentativa a entrar é a primeira a sair."""
+    """[Secção 25] LIFO: a última tentativa a entrar é a primeira a sair."""
     def __init__(self):
         self._items = []
 

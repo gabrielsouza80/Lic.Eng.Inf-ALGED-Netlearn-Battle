@@ -1,4 +1,4 @@
-"""Testes unitários para registo, hash e login."""
+"""[Secções 8 a 11 e 38] Testes de registo, hash e login."""
 import os
 import tempfile
 import unittest

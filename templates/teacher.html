@@ -3,7 +3,7 @@
 {% block content %}
 <section class="page-heading"><p class="eyebrow">Área simples de consulta</p><h1>Professor</h1><p>Dados globais guardados nos ficheiros JSON.</p></section>
 <section class="stat-grid">
-  <div class="stat"><span>Perguntas respondidas</span><strong>{{ stats.total }}</strong></div>
+  <div class="stat" data-testid="teacher-total"><span>Perguntas respondidas</span><strong>{{ stats.total }}</strong></div>
   <div class="stat"><span>Taxa global</span><strong>{{ stats.accuracy }}%</strong></div>
   <div class="stat"><span>Respostas certas</span><strong>{{ stats.correct }}</strong></div>
   <div class="stat"><span>Respostas erradas</span><strong>{{ stats.wrong }}</strong></div>

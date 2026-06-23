@@ -2,7 +2,8 @@
 import json
 import os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(ROOT_DIR, "data")
+# Nos testes Robot, NETLEARN_DATA_DIR aponta para dados temporários e isolados.
+DATA_DIR = os.environ.get("NETLEARN_DATA_DIR", os.path.join(ROOT_DIR, "data"))
 
 
 def file_path(filename):

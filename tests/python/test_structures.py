@@ -13,6 +13,8 @@ class StructuresTests(unittest.TestCase):
         queue.enqueue("segundo")
         self.assertEqual(queue.dequeue(), "primeiro")
         self.assertEqual(queue.dequeue(), "segundo")
+        self.assertTrue(queue.is_empty())
+        self.assertIsNone(queue.dequeue())
 
     def test_stack_is_lifo(self):
         # LIFO: o último valor colocado é o primeiro removido.
@@ -21,6 +23,8 @@ class StructuresTests(unittest.TestCase):
         stack.push("segundo")
         self.assertEqual(stack.pop(), "segundo")
         self.assertEqual(stack.pop(), "primeiro")
+        self.assertTrue(stack.is_empty())
+        self.assertIsNone(stack.pop())
 
 
 if __name__ == "__main__":

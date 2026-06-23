@@ -1,0 +1,3 @@
+# Configuração do RobotCode: todos os relatórios ficam dentro de tests/robot.
+paths = ["tests/robot"]
+output-dir = "tests/robot/results"

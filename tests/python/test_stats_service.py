@@ -16,6 +16,24 @@ class StatsServiceTests(unittest.TestCase):
         self.assertEqual(result["correct"], 1)
         self.assertEqual(result["wrong"], 2)
         self.assertEqual(result["accuracy"], 33.33)
+        self.assertEqual(result["accuracy_by_level"], {"1": 50.0, "2": 0.0})
+        self.assertEqual(result["mean_time"], 3.33)
+        self.assertEqual(result["median_time"], 4)
+        self.assertEqual(result["mode_time"], 4)
+
+    def test_weakest_topic_uses_the_topic_with_more_errors(self):
+        attempts = [
+            {"level": 1, "topic": "IPv4", "is_correct": False, "response_time_seconds": 2},
+            {"level": 1, "topic": "IPv4", "is_correct": False, "response_time_seconds": 3},
+            {"level": 4, "topic": "IPv6", "is_correct": False, "response_time_seconds": 4},
+        ]
+        self.assertEqual(StatsService().calculate(attempts)["weakest_topic"], "IPv4")
+
+    def test_empty_attempts_have_safe_values(self):
+        result = StatsService().calculate([])
+        self.assertEqual(result["total"], 0)
+        self.assertEqual(result["accuracy"], 0)
+        self.assertEqual(result["mode_time"], "sem dados")
 
 
 if __name__ == "__main__":

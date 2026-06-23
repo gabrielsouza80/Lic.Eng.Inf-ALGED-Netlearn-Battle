@@ -138,13 +138,17 @@ robot --outputdir tests/robot/results tests/robot
 
 Os resultados (`output.xml`, `log.html`, `report.html` e logs Flask) ficam em `tests/robot/results/`. No VS Code, a configuração do RobotCode também guarda os resultados nessa pasta.
 
-`web_tests_valid.robot` contém fluxos válidos: registo, login, jogo nos cinco níveis, histórico, estatísticas, ranking, professor e logout. `web_tests_invalids.robot` contém login inválido e acesso sem login às páginas protegidas.
+`web_tests_valid.robot` e `web_tests_invalids.robot` usam os ficheiros reais em `data/`. Em cada execução, o `Suite Setup` regista um username com data/hora e faz um único login inicial. Por isso, estas suites criam contas, scores e tentativas reais.
 
-Os testes Robot iniciam e terminam a aplicação Flask automaticamente na porta `5002`, separada da aplicação normal na porta `5000`. O Chrome abre de forma visível para poder acompanhar a navegação. A velocidade visual é definida por `${VISUAL_SPEED}` em `resources/common.resource` e está em 700 milissegundos por ação. É necessário ter Google Chrome instalado. Não feche o Chrome manualmente: o Robot fecha-o no fim da execução.
+Todas as suites Robot usam os ficheiros reais em `data/`. A conta usada no teste de persistência está definida em `tests/robot/test_credentials.json`: `gabrielsouza80` com password `808005`. O teste cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.
+
+O teste de ranking verifica se existem pelo menos três jogadores com tentativas. Se não existirem, cria por registo os jogadores em falta, faz login em cada um e executa uma jogada. Depois compara a ordem mostrada no Top 5 com a ordem calculada a partir de `data/scores.json`. A suite inválida agrupa as validações sem login num único fluxo e, depois de um login único, valida submissão sem opção, índice de resposta inválido, resposta sem pergunta e nível inexistente.
+
+Os testes Robot iniciam e terminam a aplicação Flask automaticamente na porta `5002`, separada da aplicação normal na porta `5000`. O Chrome abre de forma visível para poder acompanhar a navegação. A velocidade visual é definida por `${VISUAL_SPEED}` em `resources/common.resource` e está em 700 milissegundos por ação. É necessário ter Google Chrome instalado. Não feche o Chrome manualmente: o Robot fecha-o no fim da execução. Cada caso da suite válida também pode ser executado pelo botão verde: o `Suite Setup` cria e autentica a conta antes desse caso.
 
 Se o Flask não iniciar, consulte `flask-error.log` na pasta de resultados do Robot para ver a causa.
 
-No VS Code, o RobotCode pode usar um Python interno diferente. Por isso, o ficheiro Robot inicia Flask com `py -3`, que usa o Python normal do Windows onde foram instaladas as dependências do projeto. Os testes usam JSON temporário em `tests/robot/results/test-data`, por isso não alteram os dados reais em `data/`.
+No VS Code, o RobotCode pode usar um Python interno diferente. Por isso, o ficheiro Robot inicia Flask com `py -3`, que usa o Python normal do Windows onde foram instaladas as dependências do projeto. As suites Robot usam os JSON reais em `data/`, por isso cada execução cria registos, tentativas e scores reais.
 
 Se aparecer um erro a indicar que a versão de `ChromeDriver` não é compatível com o Chrome, remova ou atualize o ChromeDriver antigo que estiver no `PATH`. O Selenium Manager descarrega automaticamente um driver compatível quando não encontra um driver manual antigo.
 

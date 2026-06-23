@@ -1,8 +1,9 @@
 """[Secções 6 e 7] Leitura e escrita dos ficheiros JSON do projeto."""
 import json
 import os
+import time
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# Nos testes Robot, NETLEARN_DATA_DIR aponta para dados temporários e isolados.
+# NETLEARN_DATA_DIR permite mudar toda a pasta data apenas se for necessário.
 DATA_DIR = os.environ.get("NETLEARN_DATA_DIR", os.path.join(ROOT_DIR, "data"))
 
 
@@ -31,4 +32,13 @@ def save(filename, data):
     temporary = path + ".tmp"
     with open(temporary, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=2)
-    os.replace(temporary, path)  # Evita JSON parcial se o programa for interrompido.
+    # A substituição é atómica. No Windows, antivírus ou indexação podem bloquear o
+    # ficheiro por alguns milissegundos; repetimos poucas vezes para evitar falhas.
+    for attempt in range(5):
+        try:
+            os.replace(temporary, path)
+            return
+        except PermissionError:
+            if attempt == 4:
+                raise
+            time.sleep(0.05)

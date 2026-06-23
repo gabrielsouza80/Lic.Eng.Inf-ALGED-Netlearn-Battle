@@ -92,11 +92,37 @@ Não é um jogo online completo e não está integrado com a interface web.
 
 ## Testes
 
+Os testes Python validam a lógica interna do projeto. Os testes Robot validam a interface web no navegador.
+
+### Testes Python com unittest
+
 ```powershell
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests/python -v
 ```
 
-Os testes verificam que todos os níveis têm perguntas JSON e que as estatísticas básicas são calculadas corretamente.
+Estes testes verificam:
+
+- Queue com comportamento FIFO;
+- Stack com comportamento LIFO;
+- atualização de score;
+- estatísticas básicas;
+- leitura e escrita de JSON num ficheiro temporário.
+
+### Testes funcionais com Robot Framework
+
+Primeiro, inicie a aplicação web num terminal:
+
+```powershell
+python app.py
+```
+
+Noutro terminal, execute:
+
+```powershell
+robot tests/robot/web_tests.robot
+```
+
+Os testes Robot abrem o navegador e verificam a página inicial, login, registo, regras, ranking e o redirecionamento do dashboard quando não existe login. É necessário ter Google Chrome instalado.
 
 ## Como explicar ao professor
 

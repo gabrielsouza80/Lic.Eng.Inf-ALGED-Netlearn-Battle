@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Como jogar</p><h1>Regras</h1><p>Escolha um nível, responda à pergunta de escolha múltipla e receba feedback imediato.</p></section>
+<section class="card table-card"><table><thead><tr><th>Nível</th><th>Tema</th><th>Certa</th><th>Errada</th></tr></thead><tbody><tr><td>1</td><td>IPv4 básico</td><td>+10</td><td>-5</td></tr><tr><td>2</td><td>Sub-redes IPv4</td><td>+20</td><td>-10</td></tr><tr><td>3</td><td>Super-redes IPv4</td><td>+30</td><td>-15</td></tr><tr><td>4</td><td>IPv6 simples</td><td>+40</td><td>-20</td></tr><tr><td>5</td><td>ACLs simples</td><td>+50</td><td>-25</td></tr></tbody></table></section>
+<section class="card details"><h2>ACLs</h2><p>Uma ACL é avaliada pela ordem: a primeira regra que corresponde ao pacote determina <code>permit</code> ou <code>deny</code>. Se nenhuma regra corresponder, é aplicado <code>deny</code>.</p></section>
+{% endblock %}

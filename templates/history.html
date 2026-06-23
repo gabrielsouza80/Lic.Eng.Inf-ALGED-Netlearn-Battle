@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">As suas últimas 20 respostas</p><h1>Histórico</h1></section>
+<section class="card table-card">
+{% if attempts %}
+<div class="scroll"><table><thead><tr><th>Nível</th><th>Tópico</th><th>Pergunta</th><th>Resultado</th><th>Pontos</th><th>Tempo</th></tr></thead><tbody>
+{% for attempt in attempts %}<tr><td>{{ attempt.level }}</td><td>{{ attempt.topic }}</td><td>{{ attempt.question }}</td><td><span class="tag {{ 'tag-good' if attempt.is_correct else 'tag-bad' }}">{{ 'Certa' if attempt.is_correct else 'Errada' }}</span></td><td>{{ '%+d'|format(attempt.points) }}</td><td>{{ attempt.response_time_seconds }} s</td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<p>Ainda não respondeu a perguntas. <a href="{{ url_for('play') }}">Começar a jogar</a>.</p>{% endif %}
+</section>
+{% endblock %}

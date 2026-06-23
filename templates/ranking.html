@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Melhores jogadores</p><h1>Ranking Top 5</h1></section>
+<section class="card table-card">
+  {% if ranking %}<ol class="ranking">{% for item in ranking %}<li><span>{{ item.username }}</span><strong>{{ item.score }} pontos</strong></li>{% endfor %}</ol>
+  {% else %}<p>Ainda não existem pontuações.</p>{% endif %}
+</section>
+{% endblock %}

@@ -19,6 +19,12 @@
   %}<p>Nível {{ level }}: <strong>{{ rate }}%</strong></p>{% endfor %}{% else %}<p>Ainda não existem respostas.</p>{%
   endif %}
 </section>
+<section class="card details">
+  <h2>Distribuição de scores por quartis</h2>
+  <p>Mínimo: <strong>{{ quartiles.min }}</strong> · Q1: <strong>{{ quartiles.q1 }}</strong> · Q2: <strong>{{ quartiles.q2 }}</strong> · Q3: <strong>{{ quartiles.q3 }}</strong> · Máximo: <strong>{{ quartiles.max }}</strong></p>
+  <h2>Taxa por tipo de pergunta</h2>
+  {% for kind, rate in accuracy_by_type.items() %}<p>{{ kind }}: <strong>{{ rate }}%</strong></p>{% else %}<p>Sem dados.</p>{% endfor %}
+</section>
 <section class="card table-card">
   <h2>Ranking Top 5</h2>{% if ranking %}<ol class="ranking">{% for item in ranking %}<li><span>{{ item.username
         }}</span><strong>{{ item.score }} pontos</strong></li>{% endfor %}</ol>{% else %}<p>Ainda não existem scores.
@@ -50,5 +56,17 @@
   <h2>Nota sobre TCP</h2>
   <p>A criação de uma ligação TCP está demonstrada separadamente em <code>network/server.py</code>. A interface
     principal continua a ser a web.</p>
+</section>
+<section class="card details">
+  <h2>Criar sessão TCP</h2>
+  <p>Escolha os dados e copie o comando para iniciar o servidor no terminal.</p>
+  <form method="post" class="form-grid">
+    <label>Host <input name="host" value="127.0.0.1"></label>
+    <label>Porta <input name="port" type="number" value="5001"></label>
+    <label>Nível <select name="level"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+    <label>Perguntas <input name="questions" type="number" min="1" max="10" value="5"></label>
+    <button class="button" type="submit">Gerar comando TCP</button>
+  </form>
+  {% if tcp_command %}<p><code>{{ tcp_command }}</code></p>{% endif %}
 </section>
 {% endblock %}

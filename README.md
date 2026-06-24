@@ -69,6 +69,13 @@ No registo, a aplicação cria um `salt` aleatório e guarda apenas o hash SHA-2
 7. A tentativa é colocada numa `Stack`, retirada com `pop()` e guardada em `attempts.json`.
 8. O score é atualizado em `scores.json`.
 
+Os níveis 1 a 4 usam `ipaddress` para gerar perguntas de Network ID, Broadcast,
+mesma rede e IPv6. Cada sessão web cria uma Queue FIFO de cinco perguntas. O
+modo treino reutiliza perguntas erradas guardadas no histórico.
+
+O nível 5 usa regras e pacotes de `acls.json`: a ACL é avaliada por ordem e a
+primeira regra compatível decide `permit` ou `deny`.
+
 ### Queue
 
 `Queue` organiza as perguntas. Usa FIFO: *First In, First Out*. A primeira pergunta colocada é a primeira pergunta retirada.
@@ -97,6 +104,9 @@ As estatísticas vêm de `attempts.json` e mostram total de perguntas, certas, e
 
 A rota `http://127.0.0.1:5000/teacher` é uma página pública e simples, sem autenticação de professor. Mostra o ranking Top 5, total de perguntas respondidas por todos os alunos, taxa global, taxa por nível e tentativas recentes. Também recorda que a criação de ligação TCP está demonstrada em `network/server.py`.
 
+Também mostra quartis de score, taxa por tipo de pergunta e gera um comando TCP
+com host, porta, nível e número de perguntas para o professor copiar para o terminal.
+
 ## Demonstração TCP
 
 A pasta `network/` contém `server.py` e `client.py`. É uma demonstração separada de comunicação cliente-servidor através de sockets TCP e mensagens JSON.
@@ -108,6 +118,13 @@ Para testar, abra dois terminais:
 ```powershell
 python network/server.py
 python network/client.py
+```
+
+Também pode usar argumentos:
+
+```powershell
+py -3 network/server.py --host 127.0.0.1 --port 5001 --level 1 --questions 5
+py -3 network/client.py --host 127.0.0.1 --port 5001
 ```
 
 O Flask usa a porta `5000` e o TCP usa a porta `5001`, por isso podem funcionar ao mesmo tempo. Não é um jogo online completo e não está integrado com a interface web. A resposta TCP é apenas demonstrativa: num sistema real, o servidor guardaria a resposta correta sem a receber do cliente.

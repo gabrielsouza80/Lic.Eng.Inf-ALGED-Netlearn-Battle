@@ -7,7 +7,7 @@ Test Setup       Preparar Teste Inválido Sem Sessão
 Test Teardown    Finalizar Teste Com Navegador
 
 *** Test Cases ***
-Login Inicial Para Testes Inválidos Com Sessão
+Login Válido Para Testar Ações Inválidas Autenticadas
     [Tags]    negativo    autenticacao
     # Cada caso abre um navegador próprio; este caso prova que uma sessão válida é criada.
     Fazer Login    ${ACTIVE_USER}    ${SESSION_PASSWORD}

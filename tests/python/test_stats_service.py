@@ -45,6 +45,10 @@ class StatsServiceTests(unittest.TestCase):
         self.assertEqual(result["total"], 1)
         self.assertEqual(result["correct"], 1)
 
+    def test_score_quartiles(self):
+        quartiles = StatsService().score_quartiles({"a": 10, "b": 20, "c": 30, "d": 40})
+        self.assertEqual(quartiles, {"min": 10, "q1": 15.0, "q2": 25.0, "q3": 35.0, "max": 40})
+
 
 if __name__ == "__main__":
     unittest.main()

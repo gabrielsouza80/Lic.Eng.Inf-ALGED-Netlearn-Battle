@@ -1,6 +1,7 @@
 """[Secções 35 a 37] Cliente TCP que envia mensagens JSON ao servidor."""
 import json
 import socket
+import argparse
 
 HOST = "127.0.0.1"
 # A web Flask usa 5000; este cliente liga à demonstração TCP na porta 5001.
@@ -13,8 +14,8 @@ def send_and_receive(connection, reader, message):
     return json.loads(reader.readline())
 
 
-def main():
-    with socket.create_connection((HOST, PORT)) as client:
+def main(host=HOST, port=PORT):
+    with socket.create_connection((host, port), timeout=10) as client:
         reader = client.makefile("r", encoding="utf-8")
         username = input("Utilizador: ")
         password = input("Password: ")
@@ -36,15 +37,19 @@ def main():
         except ValueError:
             answer = -1
 
-        # Esta mensagem demonstra ANSWER_SUBMIT e ANSWER_RESULT.
+        # O cliente envia somente a opção escolhida. A resposta certa fica no servidor.
         result = send_and_receive(client, reader, {
             "type": "ANSWER_SUBMIT",
             "selected_index": answer,
-            "correct_index": question["correct_index"],
         })
         print(result)
         print(send_and_receive(client, reader, {"type": "SCORE_UPDATE"}))
+        print(send_and_receive(client, reader, {"type": "END_SESSION"}))
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Cliente TCP NetLearn Battle")
+    parser.add_argument("--host", default=HOST)
+    parser.add_argument("--port", type=int, default=PORT)
+    args = parser.parse_args()
+    main(args.host, args.port)

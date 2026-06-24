@@ -55,6 +55,43 @@ class StatsService:
                     if isinstance(item, dict) and item.get("username") == username]
         return self.calculate(attempts)
 
+    def score_evolution(self, username):
+        """Agrupa tentativas por sessão para a tabela de evolução do aluno."""
+        sessions = {}
+        for attempt in self.history_for_user(username):
+            session_id = attempt.get("session_id", "sem_sessao")
+            item = sessions.setdefault(session_id, {"session_id": session_id,
+                "date": attempt.get("created_at", "sem data"), "points": 0, "score": 0})
+            item["points"] += attempt.get("points", 0)
+            item["score"] = attempt.get("score_after_attempt", item["score"])
+        return list(sessions.values())
+
+    def history_for_user(self, username):
+        return [item for item in load("attempts.json", [])
+                if isinstance(item, dict) and item.get("username") == username]
+
     def global_statistics(self):
         """[Secção 34] Calcula estatísticas gerais para a área do professor."""
         return self.calculate(load("attempts.json", []))
+
+    def score_quartiles(self, scores):
+        """Calcula mínimo, Q1, mediana/Q2, Q3 e máximo de forma simples."""
+        values = sorted(value for value in scores.values() if isinstance(value, (int, float)))
+        if not values:
+            return {"min": 0, "q1": 0, "q2": 0, "q3": 0, "max": 0}
+        middle = len(values) // 2
+        lower = values[:middle] or values
+        upper = values[middle + (len(values) % 2):] or values
+        return {"min": values[0], "q1": statistics.median(lower),
+                "q2": statistics.median(values), "q3": statistics.median(upper),
+                "max": values[-1]}
+
+    def accuracy_by_type(self, attempts):
+        """Agrupa tentativas por question_type; perguntas antigas usam 'geral'."""
+        groups = {}
+        for attempt in attempts:
+            if isinstance(attempt, dict):
+                key = attempt.get("question_type", "geral")
+                groups.setdefault(key, []).append(attempt)
+        return {name: round(100 * sum(item.get("is_correct", False) for item in items) / len(items), 2)
+                for name, items in groups.items()}

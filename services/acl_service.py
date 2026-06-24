@@ -1,5 +1,6 @@
 """Avaliação simples de ACL: a primeira regra compatível decide o resultado."""
 import ipaddress
+from services.json_service import load
 
 
 def _ip_matches(rule_value, address):
@@ -22,3 +23,47 @@ def evaluate_acl(rules, packet):
                     "reason": f"A regra {rule['id']} foi a primeira compatível."}
     return {"action": "deny", "matched_rule_id": None,
             "reason": "Nenhuma regra fez match; deny é aplicado por padrão."}
+
+
+def generate_acl_question():
+    """Cria pergunta permit/deny a partir de um cenário guardado em acls.json."""
+    scenarios = [item for item in load("acls.json", [])
+                 if isinstance(item, dict) and "rules" in item and "packet" in item]
+    if not scenarios:
+        return None
+    scenario = scenarios[0]
+    result = evaluate_acl(scenario["rules"], scenario["packet"])
+    options = ["permit", "deny", "primeira regra", "broadcast"]
+    return {"level": 5, "topic": "ACL simples",
+            "question": scenario["question"], "options": options,
+            "correct_index": options.index(result["action"]),
+            "points_correct": 50, "points_wrong": -25,
+            "question_type": "acl_permit_deny",
+            "acl_reason": result["reason"]}
+
+
+def _acl_question(text, options, correct, question_type):
+    return {"level": 5, "topic": "ACL simples", "question": text,
+            "options": options, "correct_index": options.index(correct),
+            "points_correct": 50, "points_wrong": -25, "question_type": question_type}
+
+
+def generate_acl_first_match_question(rules, packet):
+    result = evaluate_acl(rules, packet)
+    correct = result["matched_rule_id"] or "Nenhuma regra"
+    return _acl_question("Qual foi a primeira regra ACL que fez match?", ["R1", "R2", "R3", "Nenhuma regra"], correct, "acl_first_match")
+
+
+def generate_acl_order_question():
+    correct = "deny SSH antes de permit geral"
+    return _acl_question("Que ordem bloqueia SSH mas permite HTTP?", [correct, "permit geral antes de deny SSH", "apenas permit SSH", "sem regras"], correct, "acl_order")
+
+
+def generate_acl_missing_ace_question():
+    correct = "permit tcp any 192.168.1.10/32 443"
+    return _acl_question("Que ACE falta para permitir HTTPS ao servidor?", [correct, "deny tcp any any 443", "permit udp any any 443", "permit tcp any any 22"], correct, "acl_missing_ace")
+
+
+def generate_acl_for_server_question():
+    correct = "permit tcp any 192.168.1.10/32 portas 80 e 443; deny restante"
+    return _acl_question("Qual ACL permite HTTP e HTTPS externos ao servidor 192.168.1.10?", [correct, "permit ip any any", "deny ip any any", "permit tcp any 192.168.1.10/32 porta 22"], correct, "acl_server")

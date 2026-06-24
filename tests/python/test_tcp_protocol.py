@@ -16,8 +16,9 @@ class TcpProtocolTests(unittest.TestCase):
         self.assertIn("error", invalid)
 
     def test_answer_result_and_unknown_message(self):
-        correct = process_message({"type": "ANSWER_SUBMIT", "selected_index": 1, "correct_index": 1})
-        wrong = process_message({"type": "ANSWER_SUBMIT", "selected_index": 0, "correct_index": 1})
+        question = process_message({"type": "QUESTION_REQUEST", "level": 1})["question"]
+        correct = process_message({"type": "ANSWER_SUBMIT", "selected_index": 0})
+        wrong = process_message({"type": "ANSWER_SUBMIT", "selected_index": 99})
         unknown = process_message({"type": "OUTRA_MENSAGEM"})
 
         self.assertTrue(correct["is_correct"])

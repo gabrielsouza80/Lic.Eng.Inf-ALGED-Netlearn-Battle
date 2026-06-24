@@ -4,6 +4,9 @@ import time
 from services.json_service import load, save
 from services.score_service import ScoreService
 from services.question_generator import generate_network_question
+from services.acl_service import (generate_acl_question, generate_acl_first_match_question,
+                                  generate_acl_order_question, generate_acl_missing_ace_question,
+                                  generate_acl_for_server_question)
 from structures.queue import Queue
 from structures.stack import Stack
 
@@ -49,17 +52,28 @@ class GameService:
         if level in (1, 2, 3, 4):
             for _ in range(amount):
                 queue.enqueue(generate_network_question(level))
+        elif level == 5:
+            # ACL usa regras/pacotes do JSON e vários tipos pedidos no enunciado.
+            acl_question = generate_acl_question() or self.create_question(level)
+            if acl_question is not None:
+                scenario = load("acls.json", [])[0]
+                rules, packet = scenario.get("rules", []), scenario.get("packet", {})
+                acl_questions = [acl_question,
+                                 generate_acl_first_match_question(rules, packet),
+                                 generate_acl_order_question(),
+                                 generate_acl_missing_ace_question(),
+                                 generate_acl_for_server_question()]
+                for question in acl_questions[:amount]:
+                    queue.enqueue(question)
         else:
-            # ACL continua a vir obrigatoriamente de acls.json.
-            question = self.create_question(level)
-            if question is not None:
-                queue.enqueue(question)
+            # Um nível fora de 1..5 não deve receber perguntas ACL por engano.
+            return []
         questions = []
         while not queue.is_empty():
             questions.append(queue.dequeue())
         return questions
 
-    def save_attempt(self, username, question, selected_index, started_at):
+    def save_attempt(self, username, question, selected_index, started_at, session_id=None):
         """[Secções 14, 25 e 27] Corrige e guarda uma tentativa."""
         options = question["options"]
         valid_answer = 0 <= selected_index < len(options)
@@ -73,11 +87,14 @@ class GameService:
             "level": question["level"],
             "topic": question["topic"],
             "question": question["question"],
+            "options": options,
             "selected_answer": selected_answer,
             "correct_answer": options[correct_index],
             "is_correct": is_correct,
             "points": points,
             "response_time_seconds": round(max(0, time.time() - started_at), 2),
+            "session_id": session_id or "sem_sessao",
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
         # [Secção 25] Stack é LIFO: a última tentativa entra e sai primeiro.
@@ -89,5 +106,8 @@ class GameService:
         attempts.append(stack.pop())
         save("attempts.json", attempts)
         score = self.scores.add_points(username, points)
+        attempt["score_after_attempt"] = score
+        attempts[-1] = attempt
+        save("attempts.json", attempts)
         return {"is_correct": is_correct, "points": points, "score": score,
                 "correct_answer": options[correct_index]}

@@ -32,7 +32,7 @@ Fluxo End To End Do Projeto
     Responder Ao Nível    4    1    40    Resposta correta
     Responder Ao Nível    5    0    50    Resposta correta
     # Erro normal: opção válida, mas diferente da resposta certa.
-    Responder Ao Nível    1    1    -5    Resposta incorreta    192.168.1.0
+    Responder Ao Nível    1    1    -5    Resposta incorreta
 
     # Depois do jogo, usa os botões do dashboard para consultar uma página de cada vez.
     Click Element    css:a[href="/dashboard"]

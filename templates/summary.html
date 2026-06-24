@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Sessão terminada · {{ level_name }}</p><h1>Resumo da sessão</h1></section>
+<section class="stat-grid">
+  <div class="stat"><span>Total de perguntas</span><strong>{{ summary.total }}</strong></div>
+  <div class="stat"><span>Certas</span><strong>{{ summary.correct }}</strong></div>
+  <div class="stat"><span>Erradas</span><strong>{{ summary.wrong }}</strong></div>
+  <div class="stat"><span>Pontos da sessão</span><strong>{{ '%+d'|format(summary.session_points) }}</strong></div>
+</section>
+<section class="card details"><p>Score atual: <strong>{{ score }} pontos</strong></p></section>
+<section class="card details"><div class="actions">
+  <a class="button" href="{{ url_for('play') }}">Jogar outra sessão</a>
+  <a class="button secondary" href="{{ url_for('stats') }}">Estatísticas</a>
+  <a class="button secondary" href="{{ url_for('dashboard') }}">Dashboard</a>
+</div></section>
+{% endblock %}

@@ -2,7 +2,8 @@
 {% block content %}
 {% if question %}
   <section class="question-card">
-    <p class="eyebrow">{{ level_name }} · {{ question.topic }}</p><h1>Pergunta</h1><p class="question">{{ question.question }}</p>
+    <p class="eyebrow">{{ level_name }} · {{ question.topic }} · Pergunta {{ position }} de {{ total }}</p>
+    <h1>Pergunta</h1><p class="question">{{ question.question }}</p>
     <form method="post" action="{{ url_for('answer') }}">
       {% for option in question.options %}
         <label class="option"><input type="radio" name="choice" value="{{ loop.index0 }}" required><span>{{ option }}</span></label>
@@ -11,7 +12,7 @@
     </form>
   </section>
 {% else %}
-  <section class="page-heading"><p class="eyebrow">Uma pergunta por vez</p><h1>Escolha um nível</h1><p>As perguntas são carregadas de ficheiros JSON.</p></section>
+  <section class="page-heading"><p class="eyebrow">Sessão de 5 perguntas</p><h1>Escolha um nível</h1><p>Cada sessão tem uma Queue (FIFO) de 5 perguntas. As perguntas combinam JSON fixo e geração automática.</p></section>
   <section class="card-grid two">
     {% for level, name in levels.items() %}
       <form method="post" class="card level-card"><h2>Nível {{ level }}</h2><p>{{ name }}</p><input type="hidden" name="level" value="{{ level }}"><button class="button" type="submit">Jogar</button></form>

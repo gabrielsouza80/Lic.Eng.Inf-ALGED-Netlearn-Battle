@@ -1,0 +1,19 @@
+[
+  {
+    "username": "aluno_demo",
+    "session_id": "a1b2c3d4",
+    "level": 1,
+    "topic": "IPv4 básico",
+    "question_type": "network_id",
+    "question": "Qual é o Network ID de 192.168.1.10/24?",
+    "options": ["192.168.1.0", "192.168.1.255", "192.168.0.0", "192.168.2.0"],
+    "correct_index": 0,
+    "selected_answer": "192.168.1.0",
+    "correct_answer": "192.168.1.0",
+    "is_correct": true,
+    "points": 10,
+    "response_time_seconds": 4.2,
+    "score_after_attempt": 10,
+    "timestamp": 1700000000.0
+  }
+]

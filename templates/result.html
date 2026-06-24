@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="result-card {{ 'good' if result.is_correct else 'bad' }}">
-  <p class="eyebrow">Nível {{ level }}</p>
+  <p class="eyebrow">Nível {{ level }} · Pergunta {{ position }} de {{ total }}</p>
   <h1>{% if result.is_correct %}Resposta correta{% else %}Resposta incorreta{% endif %}</h1>
   <p>{{ question }}</p><p>A resposta correta era: <strong>{{ result.correct_answer }}</strong></p>
   <p class="points">{{ '%+d'|format(result.points) }} pontos · Score atual: {{ result.score }}</p>
-  <div class="actions"><a class="button" href="{{ url_for('play') }}">Jogar outra vez</a><a class="button secondary" href="{{ url_for('dashboard') }}">Dashboard</a></div>
+  <div class="actions">
+    {% if finished %}
+      <a class="button" href="{{ url_for('summary') }}">Ver resumo da sessão</a>
+    {% else %}
+      <a class="button" href="{{ url_for('play') }}">Próxima pergunta</a>
+    {% endif %}
+    <a class="button secondary" href="{{ url_for('dashboard') }}">Dashboard</a>
+  </div>
 </section>
 {% endblock %}

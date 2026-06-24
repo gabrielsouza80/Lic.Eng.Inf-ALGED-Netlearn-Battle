@@ -1,0 +1,7 @@
+[
+  {
+    "username": "aluno_demo",
+    "salt": "coloque_aqui_um_salt_aleatorio",
+    "password_hash": "coloque_aqui_o_hash_sha256_do_salt_mais_password"
+  }
+]

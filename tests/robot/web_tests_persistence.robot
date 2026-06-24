@@ -1,14 +1,14 @@
 *** Settings ***
-Documentation    [Secções 8 a 12 e 38] Conta Gabriel em data/ para validar persistência.
+Documentation    [Secções 8 a 12 e 38] Conta de teste persistente em data/ para validar persistência.
 Resource         resources/common.resource
 Test Setup       Preparar Teste De Persistência
 Test Teardown    Finalizar Teste De Persistência
 
 *** Test Cases ***
-Gabriel Regista Joga Sai E Entra Novamente
+Utilizador Persistente Regista Joga Sai E Entra Novamente
     [Tags]    persistencia    autenticacao    score
     # Garante persistência real entre dois logins na mesma conta.
-    Garantir Registo Da Conta Gabriel
+    Garantir Registo Da Conta Persistente
     Set Suite Variable    ${ACTIVE_USER}    ${EXISTING_USER}
     Fazer Login    ${EXISTING_USER}    ${EXISTING_PASSWORD}
     ${attempts_before}=    Obter Número De Tentativas Do Utilizador    ${EXISTING_USER}

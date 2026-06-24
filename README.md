@@ -275,10 +275,10 @@ mesmo nível, incluindo o botão "Próxima pergunta" e o resumo final. Os casos
 inválidos abrem o seu próprio navegador e criam uma sessão própria quando
 necessário. Por isso, os testes criam contas, scores e tentativas reais.
 
-Na última validação, passaram 60 testes unitários e 9 testes Robot: 1 fluxo E2E,
+Na última validação, passaram 64 testes unitários e 9 testes Robot: 1 fluxo E2E,
 6 validações inválidas, 1 teste de persistência e 1 teste de sessão completa.
 
-Todas as suites Robot usam os ficheiros reais em `data/`. A conta usada no teste de persistência está definida em `tests/robot/test_credentials.json` (copiado de `test_credentials.example.json` para ser configurado localmente). O teste cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.
+Todas as suites Robot usam os ficheiros reais em `data/`. As credenciais locais opcionais ficam em `tests/robot/test_credentials.json`, que não é versionado. Se não existir, os testes usam `tests/robot/test_credentials.example.json`; se o exemplo também não existir, usam `aluno_teste` e `password_teste`. O teste de persistência cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.
 
 O teste de ranking verifica se existem pelo menos três jogadores com tentativas. Se não existirem, cria por registo os jogadores em falta, faz login em cada um e executa uma jogada. Depois compara a ordem mostrada no Top 5 com a ordem calculada a partir de `data/scores.json`. A suite inválida agrupa as validações sem login num único fluxo e, depois de um login único, valida submissão sem opção, índice de resposta inválido, resposta sem pergunta e nível inexistente.
 

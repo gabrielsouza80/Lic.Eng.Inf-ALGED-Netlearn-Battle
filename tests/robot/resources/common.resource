@@ -39,14 +39,30 @@ Mostrar Validação
     Log    [VALIDAR] ${message}
 
 Preparar Caminhos Do Projeto
-    # Lê as credenciais Gabriel de um JSON, evitando repetir dados no código Robot.
+    # Lê as credenciais de teste de um JSON, evitando repetir dados no código Robot.
+    # Se o ficheiro test_credentials.json não existir, usa o exemplo.
     ${project_dir}=    Evaluate    os.path.abspath(os.path.join(r'''${CURDIR}''', '..', '..', '..'))    os
     Set Suite Variable    ${PROJECT_DIR}    ${project_dir}
     ${credentials_file}=    Set Variable    ${project_dir}${/}tests${/}robot${/}test_credentials.json
-    ${content}=    Get File    ${credentials_file}
-    ${credentials}=    Evaluate    json.loads($content)    json
-    ${username}=    Get From Dictionary    ${credentials}    username
-    ${password}=    Get From Dictionary    ${credentials}    password
+    ${example_file}=    Set Variable    ${project_dir}${/}tests${/}robot${/}test_credentials.example.json
+    ${has_credentials}=    Run Keyword And Return Status    File Should Exist    ${credentials_file}
+    ${has_example}=    Run Keyword And Return Status    File Should Exist    ${example_file}
+    IF    ${has_credentials}
+        ${source}=    Set Variable    ${credentials_file}
+        ${content}=    Get File    ${source}
+        ${credentials}=    Evaluate    json.loads($content)    json
+        ${username}=    Get From Dictionary    ${credentials}    username
+        ${password}=    Get From Dictionary    ${credentials}    password
+    ELSE IF    ${has_example}
+        ${source}=    Set Variable    ${example_file}
+        ${content}=    Get File    ${source}
+        ${credentials}=    Evaluate    json.loads($content)    json
+        ${username}=    Get From Dictionary    ${credentials}    username
+        ${password}=    Get From Dictionary    ${credentials}    password
+    ELSE
+        ${username}=    Set Variable    aluno_teste
+        ${password}=    Set Variable    password_teste
+    END
     Set Suite Variable    ${EXISTING_USER}    ${username}
     Set Suite Variable    ${EXISTING_PASSWORD}    ${password}
 
@@ -181,7 +197,7 @@ Fazer Login
     Page Should Contain    Olá, ${username}
     Mostrar Validação    Login aceite e dashboard apresentado.
 
-Garantir Registo Da Conta Gabriel
+Garantir Registo Da Conta Persistente
     ${content}=    Get File    ${ACTIVE_DATA_DIR}${/}users.json
     ${exists}=    Evaluate    any(user["username"] == "${EXISTING_USER}" for user in json.loads($content))    json
     IF    not ${exists}

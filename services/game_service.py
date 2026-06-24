@@ -102,6 +102,10 @@ class GameService:
             "question_type": question.get("question_type", "geral"),
         }
 
+        # Atualiza score antes de guardar a tentativa final.
+        score = self.scores.add_points(username, points)
+        attempt["score_after_attempt"] = score
+
         # [Secção 25] Stack é LIFO: a última tentativa entra e sai primeiro.
         stack = Stack()
         stack.push(attempt)
@@ -109,10 +113,6 @@ class GameService:
         if not isinstance(attempts, list):
             raise ValueError("attempts.json deve conter uma lista de tentativas.")
         attempts.append(stack.pop())
-        save("attempts.json", attempts)
-        score = self.scores.add_points(username, points)
-        attempt["score_after_attempt"] = score
-        attempts[-1] = attempt
         save("attempts.json", attempts)
         return {"is_correct": is_correct, "points": points, "score": score,
                 "correct_answer": options[correct_index]}

@@ -39,10 +39,11 @@ Ambos iniciam a aplicação web Flask.
 - `data/users.json`: username, salt e hash da password. A password nunca é guardada em texto simples.
 - `data/scores.json`: score atual de cada utilizador.
 - `data/attempts.json`: histórico das respostas, incluindo tópico, resposta escolhida, resposta correta, pontos e tempo.
-- `data/questions.json`: perguntas fixas dos níveis 1 a 4.
-- `data/acls.json`: perguntas fixas de ACL para o nível 5.
+- `data/questions.json`: perguntas de exemplo para os níveis 1 a 4 (a geração principal é feita pelo código).
+- `data/acls.json`: cenários de ACL para o nível 5.
 
-As perguntas vêm de JSON para manter o projeto simples, previsível e fácil de validar.
+As perguntas de IPv4/IPv6 são geradas dinamicamente pelo código com a biblioteca
+`ipaddress`. Os cenários de ACL são carregados de `data/acls.json`.
 
 ### Repor dados de utilização
 
@@ -62,7 +63,7 @@ No registo, a aplicação cria um `salt` aleatório e guarda apenas o hash SHA-2
 
 1. O aluno faz login.
 2. Escolhe um nível.
-3. `GameService` lê as perguntas no JSON correto.
+3. `GameService` gera perguntas para o nível escolhido (IPv4/IPv6 dinamicamente ou ACL de `acls.json`).
 4. As perguntas são colocadas numa `Queue`.
 5. A primeira pergunta é retirada com `dequeue()` e mostrada na página.
 6. O aluno responde.
@@ -277,7 +278,7 @@ necessário. Por isso, os testes criam contas, scores e tentativas reais.
 Na última validação, passaram 60 testes unitários e 9 testes Robot: 1 fluxo E2E,
 6 validações inválidas, 1 teste de persistência e 1 teste de sessão completa.
 
-Todas as suites Robot usam os ficheiros reais em `data/`. A conta usada no teste de persistência está definida em `tests/robot/test_credentials.json`: `gabrielsouza80` com password `808005`. O teste cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.
+Todas as suites Robot usam os ficheiros reais em `data/`. A conta usada no teste de persistência está definida em `tests/robot/test_credentials.json` (copiado de `test_credentials.example.json` para ser configurado localmente). O teste cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.
 
 O teste de ranking verifica se existem pelo menos três jogadores com tentativas. Se não existirem, cria por registo os jogadores em falta, faz login em cada um e executa uma jogada. Depois compara a ordem mostrada no Top 5 com a ordem calculada a partir de `data/scores.json`. A suite inválida agrupa as validações sem login num único fluxo e, depois de um login único, valida submissão sem opção, índice de resposta inválido, resposta sem pergunta e nível inexistente.
 
@@ -302,16 +303,23 @@ cliente-servidor com mensagens JSON.
 ## Limitações
 
 - A aplicação web é a interface principal.
-- A parte TCP é apenas demonstrativa e não está integrada no jogo web.
-- A área de professor é pública e não tem autenticação específica.
+- A versão TCP demonstra comunicação cliente-servidor com autenticação, pergunta,
+  resposta, score, ranking e estatísticas. A sessão TCP completa com múltiplas
+  perguntas e múltiplos clientes em paralelo fica como melhoria futura.
+- A área do professor é pública na versão académica. Como melhoria futura, poderia
+  existir autenticação específica para professor.
 - A aplicação é académica e não tem segurança profissional completa (ex.: CSRF).
-- Os dados são guardados em JSON, sem gestão de concorrência para vários utilizadores.
-- As perguntas de ACL para ordem, ACE em falta e servidor são geradas com opções fixas, sem variação dinâmica.
+  A autenticação usa hash e salt, mas o projeto não deve ser tratado como sistema
+  profissional de produção.
+- Os dados são guardados em JSON por requisito académico. Para muitos utilizadores
+  simultâneos, uma base de dados seria mais adequada.
+- As perguntas de ACL para ordem, ACE em falta e servidor são geradas com opções
+  fixas, sem variação dinâmica.
 
 ## Melhorias futuras
 
 - Mais variedade de perguntas geradas dinamicamente.
-- Integração entre o servidor TCP e o jogo web.
+- Sessão TCP completa com múltiplas perguntas parametrizadas por nível e quantidade.
 - Autenticação específica para a área do professor.
 - Proteção CSRF nos formulários.
 - Gestão de concorrência nos ficheiros JSON.

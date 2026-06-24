@@ -10,7 +10,9 @@ def _ip_matches(rule_value, address):
 
 def rule_matches_packet(rule, packet):
     """Confirma protocolo, origem, destino e porta de uma regra ACL."""
-    protocol_ok = rule.get("protocol", "any") in ("any", packet["protocol"])
+    rule_protocol = rule.get("protocol", "any").lower()
+    packet_protocol = packet.get("protocol", "").lower()
+    protocol_ok = rule_protocol in ("any", "ip") or rule_protocol == packet_protocol
     port = rule.get("port", "any")
     port_ok = port == "any" or port == packet["port"]
     return protocol_ok and port_ok and _ip_matches(rule.get("src", "any"), packet["src_ip"]) and _ip_matches(rule.get("dst", "any"), packet["dst_ip"])

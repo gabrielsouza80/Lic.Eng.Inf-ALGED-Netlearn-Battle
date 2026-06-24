@@ -225,6 +225,9 @@ data/users.json
 data/scores.json
 data/attempts.json
 
+# Credenciais locais de teste (copiar de .example.json)
+tests/robot/test_credentials.json
+
 # Streamlit
 .streamlit/secrets.toml
 

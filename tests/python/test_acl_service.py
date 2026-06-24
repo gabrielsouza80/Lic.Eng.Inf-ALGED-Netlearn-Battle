@@ -57,3 +57,31 @@ class AclServiceTests(unittest.TestCase):
         result = evaluate_acl([], {"src_ip": "10.0.0.1", "dst_ip": "10.0.0.2", "protocol": "tcp", "port": 80})
         self.assertEqual(result["action"], "deny")
         self.assertIsNone(result["matched_rule_id"])
+
+    def test_protocol_ip_matches_tcp(self):
+        rules = [{"id": "R1", "action": "deny", "protocol": "ip", "src": "any", "dst": "any", "port": "any"}]
+        packet = {"src_ip": "10.0.0.1", "dst_ip": "10.0.0.2", "protocol": "tcp", "port": 80}
+        result = evaluate_acl(rules, packet)
+        self.assertEqual(result["action"], "deny")
+        self.assertEqual(result["matched_rule_id"], "R1")
+
+    def test_protocol_ip_matches_udp(self):
+        rules = [{"id": "R1", "action": "permit", "protocol": "ip", "src": "any", "dst": "any", "port": "any"}]
+        packet = {"src_ip": "10.0.0.1", "dst_ip": "10.0.0.2", "protocol": "udp", "port": 53}
+        result = evaluate_acl(rules, packet)
+        self.assertEqual(result["action"], "permit")
+        self.assertEqual(result["matched_rule_id"], "R1")
+
+    def test_protocol_ip_matches_icmp(self):
+        rules = [{"id": "R1", "action": "deny", "protocol": "ip", "src": "any", "dst": "any", "port": "any"}]
+        packet = {"src_ip": "10.0.0.1", "dst_ip": "10.0.0.2", "protocol": "icmp", "port": 0}
+        result = evaluate_acl(rules, packet)
+        self.assertEqual(result["action"], "deny")
+        self.assertEqual(result["matched_rule_id"], "R1")
+
+    def test_protocol_tcp_does_not_match_udp(self):
+        rules = [{"id": "R1", "action": "permit", "protocol": "tcp", "src": "any", "dst": "any", "port": "any"}]
+        packet = {"src_ip": "10.0.0.1", "dst_ip": "10.0.0.2", "protocol": "udp", "port": 53}
+        result = evaluate_acl(rules, packet)
+        self.assertEqual(result["action"], "deny")
+        self.assertIsNone(result["matched_rule_id"])

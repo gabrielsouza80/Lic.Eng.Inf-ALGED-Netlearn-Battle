@@ -11,6 +11,7 @@ from services.game_service import GameService
 from services.json_service import load
 from services.score_service import ScoreService
 from services.stats_service import StatsService
+from structures.queue import Queue
 
 app = Flask(__name__)
 # [Secção 12] A chave assina os dados da sessão do utilizador.
@@ -82,7 +83,12 @@ def logout():
 @login_required
 def dashboard():
     username = session["username"]
-    return render_template("dashboard.html", username=username, score=scores.get_score(username))
+    try:
+        current_score = scores.get_score(username)
+    except ValueError:
+        flash("O ficheiro de scores está com formato inválido.", "error")
+        current_score = 0
+    return render_template("dashboard.html", username=username, score=current_score)
 
 
 @app.route("/play", methods=["GET", "POST"])
@@ -94,7 +100,11 @@ def play():
             level = int(request.form.get("level", ""))
         except ValueError:
             level = 0
-        questions = game.create_session_questions(level)
+        try:
+            questions = game.create_session_questions(level)
+        except ValueError:
+            flash("Erro ao ler ficheiro JSON. Verifique o formato.", "error")
+            return redirect(url_for("play"))
         if not questions:
             flash("Não existem perguntas para este nível.", "error")
             return redirect(url_for("play"))
@@ -130,22 +140,34 @@ def next_question():
 @app.route("/training")
 @login_required
 def training():
-    """Cria uma Queue com perguntas que o aluno errou em tentativas anteriores."""
-    errors = [item for item in game.history_for(session["username"])
+    try:
+        history = game.history_for(session["username"])
+    except ValueError:
+        flash("Erro ao ler histórico. JSON pode estar corrompido.", "error")
+        return redirect(url_for("dashboard"))
+    errors = [item for item in history
               if not item.get("is_correct") and isinstance(item.get("options"), list)]
     if not errors:
-        flash("Ainda não existem perguntas erradas disponíveis para treino.", "success")
+        flash("Ainda não existem perguntas erradas para treinar.", "success")
+        return redirect(url_for("dashboard"))
+    queue = Queue()
+    for attempt in reversed(errors):
+        options = attempt["options"]
+        correct = attempt.get("correct_answer")
+        if correct not in options:
+            continue
+        queue.enqueue({"level": attempt["level"], "topic": attempt["topic"],
+                       "question": attempt["question"], "options": options,
+                       "correct_index": options.index(correct),
+                       "points_correct": 0, "points_wrong": 0,
+                       "question_type": "training"})
+    if queue.is_empty():
+        flash("Nenhuma pergunta errada pode ser reaproveitada para treino.", "success")
         return redirect(url_for("dashboard"))
     questions = []
-    for attempt in reversed(errors[-5:]):
-        options = attempt["options"]
-        questions.append({"level": attempt["level"], "topic": attempt["topic"],
-                          "question": attempt["question"], "options": options,
-                          "correct_index": options.index(attempt["correct_answer"]),
-                          "points_correct": 0, "points_wrong": 0,
-                          "question_type": "training"})
-    question = questions.pop(0)
-    session["question"] = question
+    while not queue.is_empty():
+        questions.append(queue.dequeue())
+    session["question"] = questions.pop(0)
     session["question_queue"] = questions
     session["started_at"] = time.time()
     return render_template("play.html", question=question, level_name="Modo treino")
@@ -186,7 +208,12 @@ def answer():
 @login_required
 def history():
     # [Secção 29] Mostra tentativas anteriores do aluno autenticado.
-    attempts = list(reversed(game.history_for(session["username"])[-20:]))
+    try:
+        history_entries = game.history_for(session["username"])
+    except ValueError:
+        flash("Erro ao ler histórico. JSON pode estar corrompido.", "error")
+        return redirect(url_for("dashboard"))
+    attempts = list(reversed(history_entries[-20:]))
     return render_template("history.html", attempts=attempts)
 
 
@@ -195,19 +222,30 @@ def history():
 def statistics():
     # [Secções 30 a 33] Mostra estatísticas calculadas a partir das tentativas.
     username = session["username"]
-    return render_template("stats.html", stats=stats.personal_statistics(username),
-                           score=scores.get_score(username), evolution=stats.score_evolution(username))
+    try:
+        personal_stats = stats.personal_statistics(username)
+        current_score = scores.get_score(username)
+        evolution = stats.score_evolution(username)
+    except ValueError:
+        flash("Erro ao ler dados de estatísticas. JSON pode estar corrompido.", "error")
+        return redirect(url_for("dashboard"))
+    return render_template("stats.html", stats=personal_stats,
+                           score=current_score, evolution=evolution)
 
 
 @app.route("/ranking")
 def ranking():
     # [Secção 28] Mostra o Top 5 baseado em scores.json.
-    return render_template("ranking.html", ranking=scores.top_five())
+    try:
+        ranking_data = scores.top_five()
+    except ValueError:
+        flash("Erro ao ler ranking. JSON pode estar corrompido.", "error")
+        ranking_data = []
+    return render_template("ranking.html", ranking=ranking_data)
 
 
 @app.route("/teacher", methods=["GET", "POST"])
 def teacher():
-    # [Secção 34] Área pública e simples para consultar dados globais.
     all_attempts = game.recent_attempts(limit=10000)
     tcp_command = None
     if request.method == "POST":
@@ -219,9 +257,14 @@ def teacher():
         except ValueError:
             port, level, amount = 5001, 1, 5
         tcp_command = f"py -3 network/server.py --host {host} --port {port} --level {level} --questions {amount}"
+    try:
+        scores_data = load("scores.json", {})
+    except ValueError:
+        scores_data = {}
+    quartiles = stats.score_quartiles(scores_data)
     return render_template("teacher.html", ranking=scores.top_five(),
                            stats=stats.global_statistics(), attempts=game.recent_attempts(),
-                           quartiles=stats.score_quartiles(load("scores.json", {})),
+                           quartiles=quartiles,
                            accuracy_by_type=stats.accuracy_by_type(all_attempts), tcp_command=tcp_command)
 
 

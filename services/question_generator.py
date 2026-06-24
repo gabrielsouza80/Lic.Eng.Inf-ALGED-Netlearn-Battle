@@ -1,14 +1,34 @@
 """Gera perguntas simples de redes com respostas calculadas pelo projeto."""
 import random
+import ipaddress
 
 from services.network_calculator import broadcast, network_id, same_network, subnet_count
 
 
 POINTS = {1: (10, -5), 2: (20, -10), 3: (30, -15), 4: (40, -20)}
 
+PRIVATE_RANGES = {
+    1: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+    2: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+    3: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+}
+
+PREFIXES = {
+    1: [8, 16, 24],
+    2: [25, 26, 27],
+    3: [21, 22, 23],
+}
+
+
+def _random_ip_in_range(net_str):
+    net = ipaddress.ip_network(net_str, strict=False)
+    network_int = int(net.network_address)
+    broadcast_int = int(net.broadcast_address)
+    host_int = random.randint(network_int + 1, broadcast_int - 1)
+    return str(ipaddress.IPv4Address(host_int))
+
 
 def _question(level, topic, text, options, correct, question_type="calculation"):
-    """Constrói o dicionário comum das perguntas de escolha múltipla."""
     correct_points, wrong_points = POINTS[level]
     return {"level": level, "topic": topic, "question": text,
             "options": options, "correct_index": options.index(correct),
@@ -17,45 +37,92 @@ def _question(level, topic, text, options, correct, question_type="calculation")
 
 
 def _with_options(correct, wrong):
-    """Mistura uma resposta correta com alternativas, sem respostas repetidas."""
     options = list(dict.fromkeys([correct] + wrong))[:4]
     random.shuffle(options)
     return options
 
 
+def _network_alternatives(net):
+    step = 1 << (32 - net.prefixlen)
+    base = int(net.network_address)
+    alternatives = []
+    for offset in [1, -1, 2, -2, 3, -3]:
+        alt_int = base + offset * step
+        if 0 <= alt_int < (1 << 32) and alt_int != base:
+            alternatives.append(str(ipaddress.IPv4Address(alt_int)))
+        if len(alternatives) >= 3:
+            break
+    while len(alternatives) < 3:
+        alt = str(ipaddress.IPv4Address(random.randint(1, (1 << 32) - 2)))
+        if alt not in alternatives:
+            alternatives.append(alt)
+    return alternatives[:3]
+
+
+def _broadcast_alternatives(net):
+    step = 1 << (32 - net.prefixlen)
+    base = int(net.network_address)
+    alternatives = []
+    for offset in [1, -1, 2, -2]:
+        alt_net = base + offset * step
+        if 0 <= alt_net < (1 << 32) and alt_net != base:
+            alt_bc = alt_net + step - 1
+            alternatives.append(str(ipaddress.IPv4Address(alt_bc)))
+    while len(alternatives) < 3:
+        alt = str(ipaddress.IPv4Address(random.randint(1, (1 << 32) - 2)))
+        if alt not in alternatives:
+            alternatives.append(alt)
+    return alternatives[:3]
+
+
 def generate_network_question(level):
-    """Gera uma pergunta IPv4/IPv6 adequada ao nível escolhido."""
-    if level == 1:
-        ip, prefix = random.choice([("10.20.30.40", 8), ("172.16.5.10", 16), ("192.168.1.10", 24)])
-        kind = random.choice(["network", "broadcast", "same"])
-        topic = "IPv4 básico"
-    elif level == 2:
-        ip, prefix = random.choice([("192.168.1.70", 25), ("192.168.1.70", 26), ("192.168.1.70", 27)])
-        kind = random.choice(["network", "broadcast", "same"])
-        topic = "Sub-redes IPv4"
-    elif level == 3:
-        ip, prefix = random.choice([("10.1.3.10", 21), ("172.16.5.10", 22), ("10.1.3.10", 23)])
-        kind = random.choice(["network", "broadcast", "same"])
-        topic = "Super-redes IPv4"
-    elif level == 4:
+    if level == 4:
         return _ipv6_question()
-    else:
+    if level not in PRIVATE_RANGES:
         return None
 
+    base_net = random.choice(PRIVATE_RANGES[level])
+    prefix = random.choice(PREFIXES[level])
+    kind = random.choice(["network", "broadcast", "same"])
+
+    topic = {1: "IPv4 básico", 2: "Sub-redes IPv4", 3: "Super-redes IPv4"}[level]
+    ip = _random_ip_in_range(base_net)
     address = f"{ip}/{prefix}"
+    net = ipaddress.ip_network(address, strict=False)
+
     if kind == "network":
         correct = network_id(address)
+        alternatives = _network_alternatives(net)
         return _question(level, topic, f"Qual é o Network ID de {address}?",
-                         _with_options(correct, [ip, "0.0.0.0", "255.255.255.255"]), correct, "network_id")
+                         _with_options(correct, alternatives), correct, "network_id")
+
     if kind == "broadcast":
         correct = broadcast(address)
         return _question(level, topic, f"Qual é o broadcast de {address}?",
-                         _with_options(correct, [network_id(address), ip, "255.255.255.255"]), correct, "broadcast")
+                         _with_options(correct, [network_id(address)] + _broadcast_alternatives(net)),
+                         correct, "broadcast")
 
-    other = ip.rsplit(".", 1)[0] + ".200"
-    correct = "Sim" if same_network(ip, other, prefix) else "Não"
+    net_int = int(net.network_address)
+    broadcast_int = int(net.broadcast_address)
+    if random.choice([True, False]):
+        other_int = random.randint(net_int + 1, broadcast_int - 1)
+        other = str(ipaddress.IPv4Address(other_int))
+        correct_text = "Sim"
+    else:
+        step = 1 << (32 - prefix)
+        if random.random() < 0.5:
+            offset = random.choice([1, -1, 2, -2])
+            other_net_int = net_int + offset * step
+            if other_net_int < 0 or other_net_int >= (1 << 32):
+                other_net_int = net_int - step
+            other_int = random.randint(other_net_int + 1, other_net_int + step - 1)
+            other = str(ipaddress.IPv4Address(other_int))
+        else:
+            other_range = random.choice([r for r in PRIVATE_RANGES[level] if r != base_net])
+            other = _random_ip_in_range(other_range)
+        correct_text = "Não"
     return _question(level, topic, f"Os IPs {ip} e {other} pertencem à mesma rede /{prefix}?",
-                     ["Sim", "Não"], correct, "same_network")
+                     ["Sim", "Não"], correct_text, "same_network")
 
 
 def _ipv6_question():

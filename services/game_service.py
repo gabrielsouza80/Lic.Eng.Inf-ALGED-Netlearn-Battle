@@ -95,6 +95,7 @@ class GameService:
             "response_time_seconds": round(max(0, time.time() - started_at), 2),
             "session_id": session_id or "sem_sessao",
             "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "question_type": question.get("question_type", "geral"),
         }
 
         # [Secção 25] Stack é LIFO: a última tentativa entra e sai primeiro.

@@ -28,33 +28,36 @@ def process_message(message, client_state=None):
     global LAST_QUESTION
     client_state = client_state if client_state is not None else {}
     message_type = message.get("type")
-    if message_type == "AUTH_REQUEST":
-        valid = AuthService().login(message.get("username", ""), message.get("password", ""))
-        return {"type": "AUTH_RESPONSE", "success": valid}
-    if message_type == "QUESTION_REQUEST":
-        question = GameService().create_question(message.get("level", 1))
-        if question is None:
-            return {"type": "QUESTION_PUSH", "error": "Nível sem perguntas."}
-        client_state["question"] = question
-        LAST_QUESTION = question  # Mantido para os testes unitários simples.
-        # A resposta correta fica no servidor; o cliente recebe só o necessário.
-        public_question = {key: value for key, value in question.items() if key != "correct_index"}
-        return {"type": "QUESTION_PUSH", "question": public_question}
-    if message_type == "ANSWER_SUBMIT":
-        question = client_state.get("question", LAST_QUESTION)
-        if question is None:
-            return {"type": "ANSWER_RESULT", "error": "Não existe pergunta ativa."}
-        correct = message.get("selected_index") == question["correct_index"]
-        return {"type": "ANSWER_RESULT", "is_correct": correct}
-    if message_type == "SCORE_UPDATE":
-        return {"type": "SCORE_UPDATE", "message": "Score recebido."}
-    if message_type == "RANKING_REQUEST":
-        return {"type": "RANKING_RESPONSE", "ranking": ScoreService().top_five()}
-    if message_type == "STATS_REQUEST":
-        return {"type": "STATS_RESPONSE", "stats": StatsService().global_statistics()}
-    if message_type == "END_SESSION":
-        return {"type": "END_SESSION", "message": "Sessão terminada pelo cliente."}
-    return {"type": "ERROR", "message": "Mensagem desconhecida."}
+    try:
+        if message_type == "AUTH_REQUEST":
+            valid = AuthService().login(message.get("username", ""), message.get("password", ""))
+            return {"type": "AUTH_RESPONSE", "success": valid}
+        if message_type == "QUESTION_REQUEST":
+            question = GameService().create_question(message.get("level", 1))
+            if question is None:
+                return {"type": "QUESTION_PUSH", "error": "Nível sem perguntas."}
+            client_state["question"] = question
+            LAST_QUESTION = question
+            allowed_keys = {"question", "options", "level", "topic", "question_type"}
+            public_question = {key: question[key] for key in allowed_keys if key in question}
+            return {"type": "QUESTION_PUSH", "question": public_question}
+        if message_type == "ANSWER_SUBMIT":
+            question = client_state.get("question", LAST_QUESTION)
+            if question is None:
+                return {"type": "ANSWER_RESULT", "error": "Não existe pergunta ativa."}
+            correct = message.get("selected_index") == question["correct_index"]
+            return {"type": "ANSWER_RESULT", "is_correct": correct}
+        if message_type == "SCORE_UPDATE":
+            return {"type": "SCORE_UPDATE", "message": "Score recebido."}
+        if message_type == "RANKING_REQUEST":
+            return {"type": "RANKING_RESPONSE", "ranking": ScoreService().top_five()}
+        if message_type == "STATS_REQUEST":
+            return {"type": "STATS_RESPONSE", "stats": StatsService().global_statistics()}
+        if message_type == "END_SESSION":
+            return {"type": "END_SESSION", "message": "Sessão terminada pelo cliente."}
+        return {"type": "ERROR", "message": "Mensagem desconhecida."}
+    except ValueError:
+        return {"type": "ERROR", "message": "Erro interno: JSON pode estar corrompido."}
 
 
 def main(host=HOST, port=PORT):

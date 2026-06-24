@@ -69,12 +69,15 @@ No registo, a aplicação cria um `salt` aleatório e guarda apenas o hash SHA-2
 7. A tentativa é colocada numa `Stack`, retirada com `pop()` e guardada em `attempts.json`.
 8. O score é atualizado em `scores.json`.
 
-Os níveis 1 a 4 usam `ipaddress` para gerar perguntas de Network ID, Broadcast,
-mesma rede e IPv6. Cada sessão web cria uma Queue FIFO de cinco perguntas. O
+Os níveis 1 a 4 geram perguntas de Network ID, Broadcast, mesma rede e IPv6
+usando a biblioteca `ipaddress`. Os endereços IPv4 são sorteados de redes
+privadas variadas (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`) para
+evitar repetição. Cada sessão web cria uma Queue FIFO de cinco perguntas. O
 modo treino reutiliza perguntas erradas guardadas no histórico.
 
 O nível 5 usa regras e pacotes de `acls.json`: a ACL é avaliada por ordem e a
-primeira regra compatível decide `permit` ou `deny`.
+primeira regra compatível decide `permit` ou `deny`. Se nenhuma regra
+corresponder, o comportamento padrão é `deny`.
 
 ### Queue
 
@@ -83,6 +86,43 @@ primeira regra compatível decide `permit` ou `deny`.
 ### Stack
 
 `Stack` guarda uma tentativa antes de a persistir. Usa LIFO: *Last In, First Out*. A última tentativa colocada é a primeira a sair.
+
+## IPv4
+
+As perguntas de IPv4 usam a biblioteca `ipaddress` para calcular Network ID,
+Broadcast e verificar se dois endereços pertencem à mesma rede. Os endereços
+são gerados aleatoriamente dentro de redes privadas (`10.0.0.0/8`,
+`172.16.0.0/12`, `192.168.0.0/16`). Os níveis definem o prefixo:
+
+- Nível 1: /8, /16, /24
+- Nível 2: /25, /26, /27
+- Nível 3: /21, /22, /23
+
+Para perguntas de "mesmo segmento", o sistema gera pares que às vezes
+pertencem à mesma rede (resposta "Sim") e às vezes não (resposta "Não"),
+garantindo variedade.
+
+## IPv6
+
+As perguntas de IPv6 usam endereços `2001:db8::/32` (documentação RFC 3849).
+Incluem Network ID, verificação de mesma rede, contagem de sub-redes e a
+particularidade de o IPv6 não possuir endereço de broadcast.
+
+## ACL
+
+As ACLs são avaliadas pela primeira regra compatível (first match). O sistema
+percorre as regras por ordem e aplica a primeira que corresponde ao pacote. Se
+nenhuma regra corresponder, o comportamento padrão é `deny`.
+
+Os tipos de pergunta ACL são:
+
+1. **permit/deny** — dada uma ACL e um pacote, identificar se permite ou bloqueia.
+2. **primeira regra** — identificar a primeira regra que fez match.
+3. **ordem correta** — dada uma lista de regras, escolher a ordem que produz o
+   comportamento esperado.
+4. **ACE em falta** — dada uma ACL incompleta, escolher a regra em falta.
+5. **ACL para servidor** — dado um servidor e serviços ativos, escolher a ACL
+   correta para permitir acesso externo.
 
 ## Pontuação
 
@@ -102,16 +142,59 @@ As estatísticas vêm de `attempts.json` e mostram total de perguntas, certas, e
 
 ## Área de professor
 
-A rota `http://127.0.0.1:5000/teacher` é uma página pública e simples, sem autenticação de professor. Mostra o ranking Top 5, total de perguntas respondidas por todos os alunos, taxa global, taxa por nível e tentativas recentes. Também recorda que a criação de ligação TCP está demonstrada em `network/server.py`.
+A rota `http://127.0.0.1:5000/teacher` é uma página pública e simples, sem autenticação de professor. Mostra:
 
-Também mostra quartis de score, taxa por tipo de pergunta e gera um comando TCP
-com host, porta, nível e número de perguntas para o professor copiar para o terminal.
+- total de perguntas respondidas, certas e erradas;
+- taxa global de acerto;
+- taxa de acerto por nível;
+- taxa de acerto por tipo de pergunta (network_id, broadcast, etc.);
+- quartis de score (mínimo, Q1, Q2, Q3, máximo);
+- ranking Top 5;
+- tentativas recentes de todos os alunos.
+
+Também gera um comando TCP com host, porta, nível e número de perguntas para o
+professor copiar para o terminal.
 
 ## Demonstração TCP
 
 A pasta `network/` contém `server.py` e `client.py`. É uma demonstração separada de comunicação cliente-servidor através de sockets TCP e mensagens JSON.
 
-Mensagens demonstradas: `AUTH_REQUEST`, `AUTH_RESPONSE`, `QUESTION_REQUEST`, `QUESTION_PUSH`, `ANSWER_SUBMIT`, `ANSWER_RESULT` e `SCORE_UPDATE`.
+O servidor guarda a resposta correta internamente e nunca envia o `correct_index` para o cliente. A validação é feita do lado do servidor.
+
+### Mensagens oficiais do protocolo
+
+| Cliente envia | Servidor responde | Descrição |
+|---|---|---|
+| `AUTH_REQUEST` | `AUTH_RESPONSE` | Autenticação do utilizador |
+| `QUESTION_REQUEST` | `QUESTION_PUSH` | Pedido de pergunta |
+| `ANSWER_SUBMIT` | `ANSWER_RESULT` | Submissão de resposta |
+| `SCORE_UPDATE` | `SCORE_UPDATE` | Atualização de score |
+| `RANKING_REQUEST` | `RANKING_RESPONSE` | Pedido de ranking |
+| `STATS_REQUEST` | `STATS_RESPONSE` | Pedido de estatísticas |
+| `END_SESSION` | `END_SESSION` | Fim de sessão |
+
+### Exemplo de conversa TCP
+
+```
+Cliente → {"type": "AUTH_REQUEST", "username": "aluno1", "password": "1234"}
+Servidor → {"type": "AUTH_RESPONSE", "success": true}
+
+Cliente → {"type": "QUESTION_REQUEST", "level": 1}
+Servidor → {"type": "QUESTION_PUSH", "question": {
+              "question": "Qual é o Network ID de 192.168.1.10/24?",
+              "options": ["192.168.1.0", "192.168.1.255", "192.168.0.0", "192.168.2.0"],
+              "level": 1, "topic": "IPv4 básico"}}
+
+Cliente → {"type": "ANSWER_SUBMIT", "selected_index": 0}
+Servidor → {"type": "ANSWER_RESULT", "is_correct": true}
+
+Cliente → {"type": "END_SESSION"}
+Servidor → {"type": "END_SESSION", "message": "Sessão terminada pelo cliente."}
+```
+
+A resposta `QUESTION_PUSH` nunca inclui `correct_index`, `points_correct` nem `points_wrong`. O servidor valida internamente a resposta do aluno.
+
+### Como executar
 
 Para testar, abra dois terminais:
 
@@ -127,7 +210,7 @@ py -3 network/server.py --host 127.0.0.1 --port 5001 --level 1 --questions 5
 py -3 network/client.py --host 127.0.0.1 --port 5001
 ```
 
-O Flask usa a porta `5000` e o TCP usa a porta `5001`, por isso podem funcionar ao mesmo tempo. Não é um jogo online completo e não está integrado com a interface web. A resposta TCP é apenas demonstrativa: num sistema real, o servidor guardaria a resposta correta sem a receber do cliente.
+O Flask usa a porta `5000` e o TCP usa a porta `5001`, por isso podem funcionar ao mesmo tempo. Não é um jogo online completo e não está integrado com a interface web.
 
 ## Testes
 
@@ -145,11 +228,16 @@ Estes testes verificam:
 - Stack com comportamento LIFO;
 - registo, hash, salt e login;
 - atualização de score e ordenação do ranking;
-- estatísticas básicas;
-- leitura e escrita de JSON num ficheiro temporário.
+- estatísticas básicas (total, taxa global, quartis, taxa por tipo);
+- leitura e escrita de JSON num ficheiro temporário;
+- geração de perguntas IPv4/IPv6 para todos os níveis;
+- mensagens oficiais do protocolo TCP (AUTH_REQUEST, QUESTION_REQUEST, etc.);
+- ACL: permit/deny, primeira regra compatível, deny padrão;
+- Network ID e broadcast IPv4, same_network com True e False;
+- IPv6 Network ID e same_network.
 
-Também existem testes para garantir que um score não numérico ou uma tentativa
-incompleta não derrubam as páginas de ranking e estatísticas. Registos inválidos
+Também existem testes para garantir que um score não numérico, uma tentativa
+incompleta ou um JSON malformado não derrubam as páginas. Registos inválidos
 simplesmente não entram nesses cálculos.
 
 ### Testes funcionais com Robot Framework
@@ -164,7 +252,7 @@ Veja também `tests/robot/README.md`: explica a diferença entre o resumo (`repo
 
 Todas as suites Robot usam os ficheiros reais em `data/`. `web_tests_e2e.robot` executa primeiro o fluxo completo: registo, login, os cinco níveis e depois histórico, estatísticas, ranking, professor, regras e logout. Esta é a única suite de fluxos válidos. Os casos inválidos abrem o seu próprio navegador e criam uma sessão própria quando necessário. Por isso, os testes criam contas, scores e tentativas reais.
 
-Na última validação, passaram 13 testes unitários e 8 testes Robot: 1 fluxo E2E,
+Na última validação, passaram 18 testes unitários e 8 testes Robot: 1 fluxo E2E,
 6 validações inválidas e 1 teste de persistência.
 
 Todas as suites Robot usam os ficheiros reais em `data/`. A conta usada no teste de persistência está definida em `tests/robot/test_credentials.json`: `gabrielsouza80` com password `808005`. O teste cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.
@@ -181,14 +269,26 @@ Se aparecer um erro a indicar que a versão de `ChromeDriver` não é compatíve
 
 ## Como explicar ao professor
 
-Flask cria a interface web, mas não guarda dados numa base de dados. Os dados ficam apenas em JSON. A `Queue` organiza as perguntas e a `Stack` guarda uma tentativa antes de a persistir. O score e o ranking vêm de `scores.json`; o histórico e as estatísticas vêm de `attempts.json`. A pasta `network/` contém uma demonstração simples de TCP com JSON. O projeto é pequeno, mas cobre autenticação, estruturas de dados, persistência, estatística, redes e uma interface web.
+O NetLearn Battle é uma aplicação web educativa sobre redes de computadores,
+feita em Python e Flask. O aluno joga localmente, responde perguntas sobre
+IPv4, IPv6 e ACLs, recebe feedback imediato e acumula pontos. Os dados são
+guardados apenas em JSON. O projeto usa Queue para organizar perguntas, Stack
+para registar tentativas, estatísticas para acompanhar desempenho e TCP para
+demonstrar comunicação cliente-servidor.
 
-## Limitações e melhorias futuras
+## Limitações
 
 - A aplicação web é a interface principal.
 - A parte TCP é apenas demonstrativa e não está integrada no jogo web.
-- A área de professor é pública e apenas serve para consulta académica.
-- As perguntas são fixas e carregadas de JSON.
-- A aplicação é académica e não tem segurança profissional completa, por exemplo proteção CSRF nos formulários.
-- Como os dados são ficheiros JSON, não foi criada gestão para muitos utilizadores escreverem ao mesmo tempo.
-- Melhorias futuras: mais perguntas, perguntas aleatórias, melhor gestão de sessões e mais validações de segurança.
+- A área de professor é pública e não tem autenticação específica.
+- A aplicação é académica e não tem segurança profissional completa (ex.: CSRF).
+- Os dados são guardados em JSON, sem gestão de concorrência para vários utilizadores.
+- As perguntas de ACL para ordem, ACE em falta e servidor são geradas com opções fixas, sem variação dinâmica.
+
+## Melhorias futuras
+
+- Mais variedade de perguntas geradas dinamicamente.
+- Integração entre o servidor TCP e o jogo web.
+- Autenticação específica para a área do professor.
+- Proteção CSRF nos formulários.
+- Gestão de concorrência nos ficheiros JSON.

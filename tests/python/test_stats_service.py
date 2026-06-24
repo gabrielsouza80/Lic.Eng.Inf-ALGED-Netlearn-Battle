@@ -1,4 +1,4 @@
-"""[Secções 30 a 33 e 38] Testes unitários para estatísticas."""
+"""Testes unitários para estatísticas."""
 import unittest
 
 from services.stats_service import StatsService
@@ -36,7 +36,6 @@ class StatsServiceTests(unittest.TestCase):
         self.assertEqual(result["mode_time"], "sem dados")
 
     def test_incomplete_attempt_is_ignored(self):
-        # Garante que um registo manualmente danificado não bloqueia estatísticas.
         attempts = [
             {"level": 1, "topic": "IPv4", "is_correct": True, "response_time_seconds": 2},
             {"username": "sem_campos"},
@@ -48,6 +47,26 @@ class StatsServiceTests(unittest.TestCase):
     def test_score_quartiles(self):
         quartiles = StatsService().score_quartiles({"a": 10, "b": 20, "c": 30, "d": 40})
         self.assertEqual(quartiles, {"min": 10, "q1": 15.0, "q2": 25.0, "q3": 35.0, "max": 40})
+
+    def test_accuracy_by_type(self):
+        attempts = [
+            {"level": 1, "topic": "IPv4", "is_correct": True, "response_time_seconds": 2, "question_type": "network_id"},
+            {"level": 1, "topic": "IPv4", "is_correct": False, "response_time_seconds": 3, "question_type": "network_id"},
+            {"level": 1, "topic": "IPv4", "is_correct": True, "response_time_seconds": 2, "question_type": "broadcast"},
+        ]
+        result = StatsService().accuracy_by_type(attempts)
+        self.assertIn("network_id", result)
+        self.assertIn("broadcast", result)
+        self.assertEqual(result["network_id"], 50.0)
+        self.assertEqual(result["broadcast"], 100.0)
+
+    def test_global_statistics_returns_accuracy(self):
+        result = StatsService().global_statistics()
+        self.assertIn("accuracy", result)
+
+    def test_score_quartiles_empty(self):
+        quartiles = StatsService().score_quartiles({})
+        self.assertEqual(quartiles, {"min": 0, "q1": 0, "q2": 0, "q3": 0, "max": 0})
 
 
 if __name__ == "__main__":

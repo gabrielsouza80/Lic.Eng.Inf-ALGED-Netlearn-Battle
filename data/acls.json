@@ -8,31 +8,45 @@
     ]
   },
   {
-    "level": 5,
-    "topic": "ACL simples",
-    "question": "Uma ACL tem a regra: permit tcp 192.168.1.0/24 para 10.0.0.0/24 porta 80. Um pacote TCP de 192.168.1.20 para 10.0.0.8 porta 80 é?",
-    "options": [
-      "permit",
-      "deny",
-      "IPv6",
-      "broadcast"
-    ],
-    "correct_index": 0,
-    "points_correct": 50,
-    "points_wrong": -25
+    "question": "Um pacote UDP de 10.0.0.10 para 192.168.1.20 na porta 53 deve ser permitido por esta ACL?",
+    "packet": {"src_ip": "10.0.0.10", "dst_ip": "192.168.1.20", "protocol": "udp", "port": 53},
+    "rules": [
+      {"id": "R1", "action": "permit", "protocol": "udp", "src": "any", "dst": "192.168.1.20/32", "port": 53},
+      {"id": "R2", "action": "deny", "protocol": "ip", "src": "any", "dst": "any", "port": "any"}
+    ]
   },
   {
-    "level": 5,
-    "topic": "ACL simples",
-    "question": "Uma ACL permite apenas porta 80. Um pacote TCP para a porta 22 será?",
-    "options": [
-      "permit",
-      "deny",
-      "uma sub-rede",
-      "um broadcast"
-    ],
-    "correct_index": 1,
-    "points_correct": 50,
-    "points_wrong": -25
+    "question": "Um pacote TCP de 10.0.0.99 para 10.0.0.1 na porta 22 corresponde a que regra?",
+    "packet": {"src_ip": "10.0.0.99", "dst_ip": "10.0.0.1", "protocol": "tcp", "port": 22},
+    "rules": [
+      {"id": "R1", "action": "permit", "protocol": "tcp", "src": "10.0.0.0/24", "dst": "10.0.0.1/32", "port": 22},
+      {"id": "R2", "action": "deny", "protocol": "tcp", "src": "any", "dst": "10.0.0.0/24", "port": "any"},
+      {"id": "R3", "action": "permit", "protocol": "ip", "src": "any", "dst": "any", "port": "any"}
+    ]
+  },
+  {
+    "question": "Um pacote ICMP de 172.16.0.5 para 10.0.0.1 na porta 0 deve ser permitido?",
+    "packet": {"src_ip": "172.16.0.5", "dst_ip": "10.0.0.1", "protocol": "icmp", "port": 0},
+    "rules": [
+      {"id": "R1", "action": "permit", "protocol": "icmp", "src": "any", "dst": "any", "port": "any"},
+      {"id": "R2", "action": "deny", "protocol": "ip", "src": "any", "dst": "any", "port": "any"}
+    ]
+  },
+  {
+    "question": "Um pacote TCP de 192.168.1.50 para 10.0.0.1 na porta 443 não corresponde a nenhuma regra específica. Qual é o comportamento da ACL?",
+    "packet": {"src_ip": "192.168.1.50", "dst_ip": "10.0.0.1", "protocol": "tcp", "port": 443},
+    "rules": [
+      {"id": "R1", "action": "permit", "protocol": "tcp", "src": "192.168.1.0/24", "dst": "10.0.0.10/32", "port": 80},
+      {"id": "R2", "action": "deny", "protocol": "tcp", "src": "any", "dst": "192.168.2.0/24", "port": "any"}
+    ]
+  },
+  {
+    "question": "Um pacote TCP de 10.0.0.20 para 192.168.2.50 na porta 22. Qual a primeira regra compatível?",
+    "packet": {"src_ip": "10.0.0.20", "dst_ip": "192.168.2.50", "protocol": "tcp", "port": 22},
+    "rules": [
+      {"id": "R1", "action": "deny", "protocol": "tcp", "src": "any", "dst": "192.168.2.0/24", "port": 22},
+      {"id": "R2", "action": "permit", "protocol": "tcp", "src": "10.0.0.0/24", "dst": "any", "port": "any"},
+      {"id": "R3", "action": "deny", "protocol": "ip", "src": "any", "dst": "any", "port": "any"}
+    ]
   }
 ]

@@ -481,3 +481,14 @@ form.play-level-form {
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
 }
+
+.code-block {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    margin: 0.5rem 0 1rem;
+}

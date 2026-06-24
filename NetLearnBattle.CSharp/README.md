@@ -25,9 +25,12 @@ NetLearnBattle.CSharp/
 │   └── examples/     # Modelos de dados (versionados)
 ├── Pages/            # Razor Pages
 ├── wwwroot/css/      # Estilos
-├── Network/          # (reservado para TCP)
-├── Tests/            # (reservado para testes)
+├── Network/          # Demonstração TCP (TcpServer, TcpClientDemo, TcpMessage)
 └── Program.cs        # Ponto de entrada
+
+NetLearnBattle.CSharp.Tests/
+├── *Tests.cs         # Testes xUnit isolados
+└── TestHelpers.cs    # Criação de dados temporários
 ```
 
 ## Ficheiros de dados
@@ -139,6 +142,60 @@ académica.
 - Evolução de score agregada por sessão: nível, perguntas, certas, erradas,
   pontos da sessão e score final
 
+### Fase 6 — Testes unitários (concluída)
+
+- Projeto de testes: `NetLearnBattle.CSharp.Tests/` (xUnit)
+- Framework: **xUnit** com `Microsoft.NET.Test.Sdk`
+- 100 testes distribuídos por 8 ficheiros, cobrindo todos os serviços:
+
+| Ficheiro | Testes | Cobertura |
+|----------|--------|-----------|
+| `JsonServiceTests.cs` | 6 | Load/Save, ficheiro inexistente, ficheiro vazio, round-trip |
+| `AuthServiceTests.cs` | 9 | Registo, login, hash, salt, duplicados |
+| `ScoreServiceTests.cs` | 8 | Pontuação, ranking Top 5, sem dados sensíveis |
+| `GameServiceTests.cs` | 11 | Sessão 5 perguntas, Queue, níveis, pontos, tentativas |
+| `IpServiceTests.cs` | 25 | IPv4 Network ID, Broadcast, SameNetwork, geração; IPv6 |
+| `AclServiceTests.cs` | 13 | RuleMatches, EvaluateAcl, geração 5 tipos |
+| `StatsServiceTests.cs` | 13 | Aluno, professor, quartis, vazio, tempos |
+| `TcpHandlerTests.cs` | 13 | Mensagens TCP, autenticação, resposta repetida e erros |
+
+Isolamento:
+- Todos os testes usam pastas temporárias (`Path.GetTempPath`)
+- `JsonService` aceita `basePath` opcional para testes sem `IWebHostEnvironment`
+- Nenhum teste altera `Data/*.json` real
+
+Executar:
+```powershell
+cd NetLearnBattle.CSharp.Tests
+dotnet test
+```
+ou a partir da raiz:
+```powershell
+dotnet test NetLearnBattle.CSharp.Tests
+```
+
+### Fase 5 — Demonstração TCP cliente-servidor (concluída)
+
+- Servidor TCP (`Network/TcpServer.cs`) — aceita um cliente de cada vez e responde a mensagens JSON:
+  - **AUTH_REQUEST** → AUTH_RESPONSE (autenticação do cliente)
+  - **QUESTION_REQUEST** → QUESTION_PUSH (devolve pergunta sem CorrectIndex)
+  - **ANSWER_SUBMIT** → ANSWER_RESULT (corrige resposta, atualiza score)
+  - **SCORE_UPDATE** → SCORE_UPDATE (score atual do cliente)
+  - **RANKING_REQUEST** → RANKING_RESPONSE (top 5)
+  - **STATS_REQUEST** → STATS_RESPONSE (estatísticas do cliente)
+  - **END_SESSION** → END_SESSION (fim da sessão)
+  - **ERROR** → mensagem de erro genérico
+- Cliente TCP (`Network/TcpClientDemo.cs`) — demonstrador interativo no terminal com fluxo completo: autenticação → pergunta → resposta → score → ranking → estatísticas → fim
+- Tipos de mensagem (`Network/TcpMessage.cs`) — modelo com `Type` e suporte para campos extra via `JsonExtensionData`
+- Suporta três modos de execução:
+  ```powershell
+  dotnet run                          # Aplicação web (porta 5002)
+  dotnet run -- tcp-server --host 127.0.0.1 --port 5001
+  dotnet run -- tcp-client --host 127.0.0.1 --port 5001
+  ```
+- O servidor TCP reutiliza o WebApplication builder para aceder aos serviços configurados (JsonService com ContentRootPath correto), evitando um DummyEnvironment frágil
+- **Nota:** O servidor TCP não expõe o CorrectIndex da pergunta, mantendo a integridade académica do jogo
+
 ## Páginas da aplicação
 
 | Rota | Página | Autenticação |
@@ -155,10 +212,12 @@ académica.
 | `/Ranking` | Ranking Top 5 | Pública |
 | `/Teacher` | Área do professor (estatísticas globais) | Pública |
 
-## Próximas fases
+## Limitações académicas
 
-- Demonstração TCP
-- Testes unitários e funcionais
+- O TCP é uma demonstração simples e atende um cliente de cada vez.
+- A persistência usa JSON; uma base de dados seria mais adequada em produção.
+- O hash com salt é adequado para o âmbito académico, não para segurança profissional.
+- A área do professor é pública nesta versão académica.
 
 ## Migração
 

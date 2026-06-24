@@ -12,11 +12,18 @@ public class JsonService
         Directory.CreateDirectory(_dataDir);
     }
 
+    public JsonService(string basePath)
+    {
+        _dataDir = basePath;
+        Directory.CreateDirectory(_dataDir);
+    }
+
     public List<T> LoadList<T>(string fileName)
     {
         var path = GetPath(fileName);
         if (!File.Exists(path)) return new List<T>();
         var json = File.ReadAllText(path);
+        if (string.IsNullOrWhiteSpace(json)) return new List<T>();
         return JsonSerializer.Deserialize<List<T>>(json) ?? new List<T>();
     }
 
@@ -25,6 +32,7 @@ public class JsonService
         var path = GetPath(fileName);
         if (!File.Exists(path)) return new Dictionary<string, T>();
         var json = File.ReadAllText(path);
+        if (string.IsNullOrWhiteSpace(json)) return new Dictionary<string, T>();
         return JsonSerializer.Deserialize<Dictionary<string, T>>(json) ?? new Dictionary<string, T>();
     }
 

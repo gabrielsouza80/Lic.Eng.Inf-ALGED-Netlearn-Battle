@@ -192,4 +192,17 @@ else
     }
 }
 
+<h2>Servidor TCP</h2>
+<div class="academic-note">
+    <p>A aplicação web é a versão principal do jogo, com sessão completa de 5 perguntas.</p>
+    <p>O servidor TCP é uma demonstração de comunicação cliente-servidor com mensagens JSON.</p>
+    <p>Atende um cliente de cada vez (não concorrente).</p>
+</div>
+
+<h3>Iniciar servidor TCP</h3>
+<pre class="code-block">dotnet run -- tcp-server --host 127.0.0.1 --port 5001</pre>
+
+<h3>Iniciar cliente TCP</h3>
+<pre class="code-block">dotnet run -- tcp-client --host 127.0.0.1 --port 5001</pre>
+
 <p><a href="/Dashboard" class="btn btn-secondary">Voltar ao Dashboard</a></p>

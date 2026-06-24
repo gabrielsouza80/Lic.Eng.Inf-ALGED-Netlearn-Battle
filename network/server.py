@@ -24,7 +24,6 @@ from services.stats_service import StatsService
 
 HOST = "127.0.0.1"
 PORT = 5001
-LAST_QUESTION = None
 
 
 def send_json(connection, message):
@@ -32,7 +31,6 @@ def send_json(connection, message):
 
 
 def process_message(message, client_state=None):
-    global LAST_QUESTION
     client_state = client_state if client_state is not None else {}
     message_type = message.get("type")
     try:
@@ -50,7 +48,6 @@ def process_message(message, client_state=None):
                 return {"type": "QUESTION_PUSH", "error": "Nível sem perguntas."}
             client_state["question"] = question
             client_state["started_at"] = time.time()
-            LAST_QUESTION = question
             allowed_keys = {"question", "options", "level", "topic", "question_type"}
             public_question = {key: question[key] for key in allowed_keys if key in question}
             return {"type": "QUESTION_PUSH", "question": public_question}
@@ -58,7 +55,7 @@ def process_message(message, client_state=None):
         if message_type == "ANSWER_SUBMIT":
             if "username" not in client_state:
                 return {"type": "ERROR", "message": "Autenticação necessária."}
-            question = client_state.get("question", LAST_QUESTION)
+            question = client_state.pop("question", None)
             if question is None:
                 return {"type": "ANSWER_RESULT", "error": "Não existe pergunta ativa."}
             username = client_state["username"]

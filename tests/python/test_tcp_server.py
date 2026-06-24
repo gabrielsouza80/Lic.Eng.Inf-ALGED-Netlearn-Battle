@@ -38,7 +38,6 @@ class TcpServerTests(unittest.TestCase):
         self.directory.cleanup()
 
     def test_question_push_hides_sensitive_fields(self):
-        server.LAST_QUESTION = None
         response = server.process_message({"type": "QUESTION_REQUEST", "level": 1}, self.state)
         public = response.get("question", {})
         self.assertNotIn("correct_index", public)

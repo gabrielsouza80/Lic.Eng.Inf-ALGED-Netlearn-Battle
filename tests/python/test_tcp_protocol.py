@@ -95,6 +95,22 @@ class TcpProtocolTests(unittest.TestCase):
         self.assertEqual(response["type"], "ERROR")
         self.assertIn("Mensagem desconhecida", response["message"])
 
+    def test_answer_submit_repeated_returns_error(self):
+        process_message({"type": "QUESTION_REQUEST", "level": 1}, self.state)
+        self.assertIn("question", self.state)
+        score_before = process_message({"type": "SCORE_UPDATE"}, self.state)["score"]
+        first = process_message({"type": "ANSWER_SUBMIT", "selected_index": 0}, self.state)
+        self.assertNotIn("error", first)
+        self.assertIn("is_correct", first)
+        self.assertNotIn("question", self.state)
+        score_after_first = process_message({"type": "SCORE_UPDATE"}, self.state)["score"]
+        second = process_message({"type": "ANSWER_SUBMIT", "selected_index": 0}, self.state)
+        self.assertEqual(second["type"], "ANSWER_RESULT")
+        self.assertIn("error", second)
+        self.assertEqual(second["error"], "Não existe pergunta ativa.")
+        score_after_second = process_message({"type": "SCORE_UPDATE"}, self.state)["score"]
+        self.assertEqual(score_after_first, score_after_second)
+
     def test_question_push_never_sends_sensitive_fields(self):
         response = process_message({"type": "QUESTION_REQUEST", "level": 1}, self.state)
         self.assertEqual(response["type"], "QUESTION_PUSH")

@@ -163,6 +163,11 @@ O servidor é a autoridade: valida sempre as respostas do seu lado, calcula pont
 guarda a tentativa em `attempts.json`, atualiza `scores.json` e **nunca envia o
 índice da resposta correta** dentro da pergunta.
 
+No modo TCP, cada pergunta fica associada ao estado do cliente. Após
+`ANSWER_SUBMIT`, a pergunta ativa é removida para impedir respostas repetidas
+à mesma pergunta. Se o cliente tentar responder sem pergunta ativa, o servidor
+devolve erro controlado.
+
 ### Mensagens oficiais do protocolo
 
 | Cliente envia | Servidor responde | Descrição |
@@ -258,8 +263,8 @@ Veja também `tests/robot/README.md`: explica a diferença entre o resumo (`repo
 
 Todas as suites Robot usam os ficheiros reais em `data/`. `web_tests_e2e.robot` executa primeiro o fluxo completo: registo, login, os cinco níveis e depois histórico, estatísticas, ranking, professor, regras e logout. Esta é a única suite de fluxos válidos. Os casos inválidos abrem o seu próprio navegador e criam uma sessão própria quando necessário. Por isso, os testes criam contas, scores e tentativas reais.
 
-Na última validação, passaram 22 testes unitários e 8 testes Robot: 1 fluxo E2E,
-6 validações inválidas e 1 teste de persistência.
+Na última validação, passaram 60 testes unitários e 9 testes Robot: 1 fluxo E2E,
+6 validações inválidas, 1 teste de persistência e 1 teste de sessão completa.
 
 Todas as suites Robot usam os ficheiros reais em `data/`. A conta usada no teste de persistência está definida em `tests/robot/test_credentials.json`: `gabrielsouza80` com password `808005`. O teste cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.
 

@@ -43,6 +43,8 @@ def process_message(message, client_state=None):
             return {"type": "AUTH_RESPONSE", "success": valid}
 
         if message_type == "QUESTION_REQUEST":
+            if "username" not in client_state:
+                return {"type": "ERROR", "message": "Autenticação necessária."}
             question = GameService().create_question(message.get("level", 1))
             if question is None:
                 return {"type": "QUESTION_PUSH", "error": "Nível sem perguntas."}
@@ -54,10 +56,12 @@ def process_message(message, client_state=None):
             return {"type": "QUESTION_PUSH", "question": public_question}
 
         if message_type == "ANSWER_SUBMIT":
+            if "username" not in client_state:
+                return {"type": "ERROR", "message": "Autenticação necessária."}
             question = client_state.get("question", LAST_QUESTION)
             if question is None:
                 return {"type": "ANSWER_RESULT", "error": "Não existe pergunta ativa."}
-            username = client_state.get("username", "desconhecido")
+            username = client_state["username"]
             selected_index = message.get("selected_index", -1)
             started_at = client_state.get("started_at", time.time())
             result = GameService().save_attempt(username, question, selected_index, started_at, "tcp")
@@ -66,8 +70,9 @@ def process_message(message, client_state=None):
                     "score": result["score"]}
 
         if message_type == "SCORE_UPDATE":
-            username = client_state.get("username", "")
-            score = ScoreService().get_score(username)
+            if "username" not in client_state:
+                return {"type": "ERROR", "message": "Autenticação necessária."}
+            score = ScoreService().get_score(client_state["username"])
             return {"type": "SCORE_UPDATE", "score": score}
 
         if message_type == "RANKING_REQUEST":

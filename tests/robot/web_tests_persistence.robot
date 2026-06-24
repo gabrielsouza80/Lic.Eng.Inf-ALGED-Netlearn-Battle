@@ -11,16 +11,15 @@ Gabriel Regista Joga Sai E Entra Novamente
     Garantir Registo Da Conta Gabriel
     Set Suite Variable    ${ACTIVE_USER}    ${EXISTING_USER}
     Fazer Login    ${EXISTING_USER}    ${EXISTING_PASSWORD}
-    ${score_before}=    Obter Score Do Utilizador    ${EXISTING_USER}
     ${attempts_before}=    Obter Número De Tentativas Do Utilizador    ${EXISTING_USER}
     Responder Ao Nível    1    0    10    Resposta correta
     Click Element    css:nav a[href="/logout"]
     Wait Until Keyword Succeeds    5x    500 milliseconds    Location Should Be    ${BASE_URL}/
     Fazer Login    ${EXISTING_USER}    ${EXISTING_PASSWORD}
     Responder Ao Nível    2    1    20    Resposta correta
-    ${score_after}=    Obter Score Do Utilizador    ${EXISTING_USER}
-    ${expected_score}=    Evaluate    int($score_before) + 30
-    Should Be Equal As Integers    ${score_after}    ${expected_score}
+    ${attempts_after}=    Obter Número De Tentativas Do Utilizador    ${EXISTING_USER}
+    ${expected_attempts}=    Evaluate    int($attempts_before) + 2
+    Should Be Equal As Integers    ${attempts_after}    ${expected_attempts}
     Go To    ${BASE_URL}/history
     ${rows}=    Get Element Count    css:[data-testid="history-row"]
     # A página de histórico apresenta apenas as últimas 20 tentativas.

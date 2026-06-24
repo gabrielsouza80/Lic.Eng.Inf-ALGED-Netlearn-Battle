@@ -1,6 +1,6 @@
 # NetLearn Battle
 
-NetLearn Battle é um jogo educativo simples sobre Redes de Computadores. A aplicação principal é uma página web criada com Flask. O aluno cria uma conta, escolhe um nível, responde a uma pergunta e consulta o seu score, histórico, estatísticas e ranking.
+NetLearn Battle é um jogo educativo sobre Redes de Computadores. A interface principal é uma página web criada com Flask. O aluno cria conta, faz login, escolhe um nível, responde a uma sessão de perguntas e consulta o score, histórico, estatísticas e ranking.
 
 O projeto foi pensado para ser fácil de entender e apresentar num contexto académico. Não usa base de dados: todos os dados são guardados em ficheiros JSON.
 
@@ -275,12 +275,13 @@ Se aparecer um erro a indicar que a versão de `ChromeDriver` não é compatíve
 
 ## Como explicar ao professor
 
-O NetLearn Battle é uma aplicação web educativa sobre redes de computadores,
-feita em Python e Flask. O aluno joga localmente, responde perguntas sobre
-IPv4, IPv6 e ACLs, recebe feedback imediato e acumula pontos. Os dados são
-guardados apenas em JSON. O projeto usa Queue para organizar perguntas, Stack
-para registar tentativas, estatísticas para acompanhar desempenho e TCP para
-demonstrar comunicação cliente-servidor.
+O NetLearn Battle é uma aplicação educativa sobre redes de computadores,
+desenvolvida em Python e Flask. O aluno cria conta, faz login, escolhe um
+nível e responde a uma sessão de perguntas sobre IPv4, IPv6 e ACLs. Cada
+resposta gera feedback imediato, altera o score e fica registada em JSON.
+O projeto usa Queue para organizar perguntas, Stack para registar tentativas,
+estatísticas para acompanhar desempenho e TCP para demonstrar comunicação
+cliente-servidor com mensagens JSON.
 
 ## Limitações
 

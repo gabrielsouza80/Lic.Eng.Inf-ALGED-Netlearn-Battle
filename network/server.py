@@ -1,8 +1,18 @@
-"""[Secções 35 a 37] Servidor TCP simples com mensagens JSON."""
+"""Servidor TCP do NetLearn Battle.
+
+Mensagens do protocolo:
+  AUTH_REQUEST    -> AUTH_RESPONSE
+  QUESTION_REQUEST -> QUESTION_PUSH
+  ANSWER_SUBMIT   -> ANSWER_RESULT + SCORE_UPDATE
+  RANKING_REQUEST -> RANKING_RESPONSE
+  STATS_REQUEST   -> STATS_RESPONSE
+  END_SESSION     -> END_SESSION
+"""
 import json
 import os
 import socket
 import sys
+import time
 import argparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,42 +23,53 @@ from services.score_service import ScoreService
 from services.stats_service import StatsService
 
 HOST = "127.0.0.1"
-# A web Flask usa 5000; o TCP usa 5001 para ambos poderem ser demonstrados.
 PORT = 5001
 LAST_QUESTION = None
 
 
 def send_json(connection, message):
-    """[Secção 36] Envia um objeto Python como uma linha JSON."""
     connection.sendall((json.dumps(message) + "\n").encode("utf-8"))
 
 
 def process_message(message, client_state=None):
-    """[Secção 36] Responde aos tipos de mensagem pedidos no enunciado."""
     global LAST_QUESTION
     client_state = client_state if client_state is not None else {}
     message_type = message.get("type")
     try:
         if message_type == "AUTH_REQUEST":
             valid = AuthService().login(message.get("username", ""), message.get("password", ""))
+            if valid:
+                client_state["username"] = message.get("username", "")
             return {"type": "AUTH_RESPONSE", "success": valid}
+
         if message_type == "QUESTION_REQUEST":
             question = GameService().create_question(message.get("level", 1))
             if question is None:
                 return {"type": "QUESTION_PUSH", "error": "Nível sem perguntas."}
             client_state["question"] = question
+            client_state["started_at"] = time.time()
             LAST_QUESTION = question
             allowed_keys = {"question", "options", "level", "topic", "question_type"}
             public_question = {key: question[key] for key in allowed_keys if key in question}
             return {"type": "QUESTION_PUSH", "question": public_question}
+
         if message_type == "ANSWER_SUBMIT":
             question = client_state.get("question", LAST_QUESTION)
             if question is None:
                 return {"type": "ANSWER_RESULT", "error": "Não existe pergunta ativa."}
-            correct = message.get("selected_index") == question["correct_index"]
-            return {"type": "ANSWER_RESULT", "is_correct": correct}
+            username = client_state.get("username", "desconhecido")
+            selected_index = message.get("selected_index", -1)
+            started_at = client_state.get("started_at", time.time())
+            result = GameService().save_attempt(username, question, selected_index, started_at, "tcp")
+            return {"type": "ANSWER_RESULT", "is_correct": result["is_correct"],
+                    "points": result["points"], "correct_answer": result["correct_answer"],
+                    "score": result["score"]}
+
         if message_type == "SCORE_UPDATE":
-            return {"type": "SCORE_UPDATE", "message": "Score recebido."}
+            username = client_state.get("username", "")
+            score = ScoreService().get_score(username)
+            return {"type": "SCORE_UPDATE", "score": score}
+
         if message_type == "RANKING_REQUEST":
             return {"type": "RANKING_RESPONSE", "ranking": ScoreService().top_five()}
         if message_type == "STATS_REQUEST":

@@ -18,6 +18,16 @@ QUESTION = {
     "points_wrong": -5,
 }
 
+TRAINING_QUESTION = {
+    "level": 1,
+    "topic": "IPv4",
+    "question": "Treino",
+    "options": ["A", "B"],
+    "correct_index": 1,
+    "points_correct": 0,
+    "points_wrong": 0,
+}
+
 
 class GameServiceTests(unittest.TestCase):
     def setUp(self):
@@ -56,6 +66,26 @@ class GameServiceTests(unittest.TestCase):
         self.assertEqual(wrong["score"], 5)
         self.assertEqual(attempts[1]["selected_answer"], "Errada")
         self.assertEqual(attempts[1]["correct_answer"], "Certa")
+
+    def test_save_training_attempt_does_not_change_score(self):
+        save("attempts.json", [])
+        save("scores.json", {"ana": 100})
+
+        result = self.service.save_attempt("ana", TRAINING_QUESTION, 1, time.time() - 1)
+        self.assertTrue(result["is_correct"])
+        self.assertEqual(result["points"], 0)
+        score = load("scores.json", {}).get("ana")
+        self.assertEqual(score, 100)
+
+    def test_create_session_questions_level_5_empty_acls(self):
+        save("acls.json", [])
+        questions = self.service.create_session_questions(5, 3)
+        self.assertGreater(len(questions), 0)
+
+    def test_history_for_returns_empty_list_when_no_attempts(self):
+        save("attempts.json", [])
+        history = self.service.history_for("ana")
+        self.assertEqual(history, [])
 
 
 if __name__ == "__main__":

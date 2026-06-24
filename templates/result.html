@@ -8,7 +8,7 @@
   <p>A resposta correta era: <strong>{{ result.correct_answer }}</strong></p>
   <p class="points">{{ '%+d'|format(result.points) }} pontos · Score atual: {{ result.score }}</p>
   {% if finished %}<section class="card"><h2>Resumo da sessão</h2><p>Total: {{ summary.total }} · Certas: {{ summary.correct }} · Erradas: {{ summary.wrong }} · Pontos: {{ summary.points }} · Score final: {{ result.score }}</p></section>{% endif %}
-  <div class="actions"><a class="button" href="{{ url_for('next_question') }}">Próxima pergunta</a><a class="button secondary" href="{{ url_for('play') }}">Escolher nível</a><a class="button secondary"
+  <div class="actions">{% if finished %}<a class="button secondary" href="{{ url_for('play') }}">Escolher novo nível</a>{% else %}<a class="button" href="{{ url_for('next_question') }}">Próxima pergunta</a>{% endif %}<a class="button secondary"
       href="{{ url_for('dashboard') }}">Dashboard</a></div>
 </section>
 {% endblock %}

@@ -167,7 +167,8 @@ def training():
     questions = []
     while not queue.is_empty():
         questions.append(queue.dequeue())
-    session["question"] = questions.pop(0)
+    question = questions.pop(0)
+    session["question"] = question
     session["question_queue"] = questions
     session["started_at"] = time.time()
     return render_template("play.html", question=question, level_name="Modo treino")
@@ -246,7 +247,6 @@ def ranking():
 
 @app.route("/teacher", methods=["GET", "POST"])
 def teacher():
-    all_attempts = game.recent_attempts(limit=10000)
     tcp_command = None
     if request.method == "POST":
         host = request.form.get("host", "127.0.0.1").strip() or "127.0.0.1"
@@ -258,14 +258,25 @@ def teacher():
             port, level, amount = 5001, 1, 5
         tcp_command = f"py -3 network/server.py --host {host} --port {port} --level {level} --questions {amount}"
     try:
-        scores_data = load("scores.json", {})
-    except ValueError:
-        scores_data = {}
-    quartiles = stats.score_quartiles(scores_data)
-    return render_template("teacher.html", ranking=scores.top_five(),
-                           stats=stats.global_statistics(), attempts=game.recent_attempts(),
+        all_attempts = game.recent_attempts(limit=10000)
+        stats_data = stats.global_statistics()
+        ranking_data = scores.top_five()
+        quartiles = stats.score_quartiles(load("scores.json", {}))
+        accuracy_by_type = stats.accuracy_by_type(all_attempts)
+        attempts_data = game.recent_attempts()
+    except (ValueError, OSError, KeyError):
+        flash("Não foi possível carregar os dados do professor. Verifique os ficheiros JSON.", "error")
+        all_attempts = []
+        stats_data = {"total": 0, "correct": 0, "wrong": 0, "accuracy": 0, "accuracy_by_level": {},
+                      "mean_time": 0, "median_time": 0, "mode_time": "sem dados", "weakest_topic": "sem dados"}
+        ranking_data = []
+        quartiles = {"min": 0, "q1": 0, "q2": 0, "q3": 0, "max": 0}
+        accuracy_by_type = {}
+        attempts_data = []
+    return render_template("teacher.html", ranking=ranking_data,
+                           stats=stats_data, attempts=attempts_data,
                            quartiles=quartiles,
-                           accuracy_by_type=stats.accuracy_by_type(all_attempts), tcp_command=tcp_command)
+                           accuracy_by_type=accuracy_by_type, tcp_command=tcp_command)
 
 
 @app.route("/rules")

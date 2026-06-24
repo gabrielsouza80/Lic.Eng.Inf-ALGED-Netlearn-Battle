@@ -52,3 +52,8 @@ class AclServiceTests(unittest.TestCase):
         if question is not None:
             self.assertEqual(len(question["options"]), 2)
             self.assertIn(question["correct_index"], (0, 1))
+
+    def test_evaluate_acl_default_deny_with_empty_rules(self):
+        result = evaluate_acl([], {"src_ip": "10.0.0.1", "dst_ip": "10.0.0.2", "protocol": "tcp", "port": 80})
+        self.assertEqual(result["action"], "deny")
+        self.assertIsNone(result["matched_rule_id"])

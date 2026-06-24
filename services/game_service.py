@@ -53,18 +53,22 @@ class GameService:
             for _ in range(amount):
                 queue.enqueue(generate_network_question(level))
         elif level == 5:
-            # ACL usa regras/pacotes do JSON e vários tipos pedidos no enunciado.
             acl_question = generate_acl_question() or self.create_question(level)
-            if acl_question is not None:
-                scenario = load("acls.json", [])[0]
+            if acl_question is None:
+                acl_question = generate_acl_order_question()
+            scenarios = load("acls.json", [])
+            if scenarios:
+                scenario = scenarios[0]
                 rules, packet = scenario.get("rules", []), scenario.get("packet", {})
-                acl_questions = [acl_question,
-                                 generate_acl_first_match_question(rules, packet),
-                                 generate_acl_order_question(),
-                                 generate_acl_missing_ace_question(),
-                                 generate_acl_for_server_question()]
-                for question in acl_questions[:amount]:
-                    queue.enqueue(question)
+            else:
+                rules, packet = [], {}
+            acl_questions = [acl_question,
+                             generate_acl_first_match_question(rules, packet) if rules else generate_acl_order_question(),
+                             generate_acl_order_question(),
+                             generate_acl_missing_ace_question(),
+                             generate_acl_for_server_question()]
+            for question in acl_questions[:amount]:
+                queue.enqueue(question)
         else:
             # Um nível fora de 1..5 não deve receber perguntas ACL por engano.
             return []

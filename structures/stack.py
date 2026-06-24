@@ -1,8 +1,14 @@
-"""[Secção 25] Pilha Stack usada para guardar tentativas."""
+"""Pilha Stack (LIFO) usada como armazenamento temporário antes da persistência.
+
+Durante uma sessão, cada tentativa é colocada na Stack com push().
+No final da validação, a tentativa é retirada com pop() e guardada em
+attempts.json. O uso de Stack é uma demonstração académica do conceito LIFO:
+a última tentativa a entrar é a primeira a sair.
+"""
 
 
 class Stack:
-    """[Secção 25] LIFO: a última tentativa a entrar é a primeira a sair."""
+    """LIFO: a última tentativa a entrar (push) é a primeira a sair (pop)."""
     def __init__(self):
         self._items = []
 

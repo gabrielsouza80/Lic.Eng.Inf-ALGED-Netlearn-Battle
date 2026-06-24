@@ -157,9 +157,11 @@ professor copiar para o terminal.
 
 ## Demonstração TCP
 
-A pasta `network/` contém `server.py` e `client.py`. É uma demonstração separada de comunicação cliente-servidor através de sockets TCP e mensagens JSON.
+A pasta `network/` contém `server.py` e `client.py`. É uma demonstração de comunicação cliente-servidor através de sockets TCP e mensagens JSON.
 
-O servidor guarda a resposta correta internamente e nunca envia o `correct_index` para o cliente. A validação é feita do lado do servidor.
+O servidor é a autoridade: valida sempre as respostas do seu lado, calcula pontos,
+guarda a tentativa em `attempts.json`, atualiza `scores.json` e **nunca envia o
+índice da resposta correta** dentro da pergunta.
 
 ### Mensagens oficiais do protocolo
 
@@ -167,8 +169,8 @@ O servidor guarda a resposta correta internamente e nunca envia o `correct_index
 |---|---|---|
 | `AUTH_REQUEST` | `AUTH_RESPONSE` | Autenticação do utilizador |
 | `QUESTION_REQUEST` | `QUESTION_PUSH` | Pedido de pergunta |
-| `ANSWER_SUBMIT` | `ANSWER_RESULT` | Submissão de resposta |
-| `SCORE_UPDATE` | `SCORE_UPDATE` | Atualização de score |
+| `ANSWER_SUBMIT` | `ANSWER_RESULT` + `SCORE_UPDATE` | Submissão de resposta |
+| `SCORE_UPDATE` | `SCORE_UPDATE` | Consulta de score atual |
 | `RANKING_REQUEST` | `RANKING_RESPONSE` | Pedido de ranking |
 | `STATS_REQUEST` | `STATS_RESPONSE` | Pedido de estatísticas |
 | `END_SESSION` | `END_SESSION` | Fim de sessão |
@@ -186,13 +188,17 @@ Servidor → {"type": "QUESTION_PUSH", "question": {
               "level": 1, "topic": "IPv4 básico"}}
 
 Cliente → {"type": "ANSWER_SUBMIT", "selected_index": 0}
-Servidor → {"type": "ANSWER_RESULT", "is_correct": true}
+Servidor → {"type": "ANSWER_RESULT", "is_correct": true, "points": 10,
+             "correct_answer": "192.168.1.0", "score": 40}
+
+Cliente → {"type": "SCORE_UPDATE"}
+Servidor → {"type": "SCORE_UPDATE", "score": 40}
 
 Cliente → {"type": "END_SESSION"}
 Servidor → {"type": "END_SESSION", "message": "Sessão terminada pelo cliente."}
 ```
 
-A resposta `QUESTION_PUSH` nunca inclui `correct_index`, `points_correct` nem `points_wrong`. O servidor valida internamente a resposta do aluno.
+A resposta `QUESTION_PUSH` nunca inclui `correct_index`, `points_correct` nem `points_wrong`. O servidor valida internamente a resposta do aluno, calcula os pontos conforme o nível e persiste a tentativa.
 
 ### Como executar
 
@@ -252,7 +258,7 @@ Veja também `tests/robot/README.md`: explica a diferença entre o resumo (`repo
 
 Todas as suites Robot usam os ficheiros reais em `data/`. `web_tests_e2e.robot` executa primeiro o fluxo completo: registo, login, os cinco níveis e depois histórico, estatísticas, ranking, professor, regras e logout. Esta é a única suite de fluxos válidos. Os casos inválidos abrem o seu próprio navegador e criam uma sessão própria quando necessário. Por isso, os testes criam contas, scores e tentativas reais.
 
-Na última validação, passaram 18 testes unitários e 8 testes Robot: 1 fluxo E2E,
+Na última validação, passaram 22 testes unitários e 8 testes Robot: 1 fluxo E2E,
 6 validações inválidas e 1 teste de persistência.
 
 Todas as suites Robot usam os ficheiros reais em `data/`. A conta usada no teste de persistência está definida em `tests/robot/test_credentials.json`: `gabrielsouza80` com password `808005`. O teste cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.

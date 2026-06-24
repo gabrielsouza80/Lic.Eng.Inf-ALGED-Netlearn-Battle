@@ -252,11 +252,9 @@ def teacher():
         host = request.form.get("host", "127.0.0.1").strip() or "127.0.0.1"
         try:
             port = int(request.form.get("port", 5001))
-            level = int(request.form.get("level", 1))
-            amount = int(request.form.get("questions", 5))
         except ValueError:
-            port, level, amount = 5001, 1, 5
-        tcp_command = f"py -3 network/server.py --host {host} --port {port} --level {level} --questions {amount}"
+            port = 5001
+        tcp_command = f"py -3 network/server.py --host {host} --port {port}"
     try:
         all_attempts = game.recent_attempts(limit=10000)
         stats_data = stats.global_statistics()

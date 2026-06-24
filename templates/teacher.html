@@ -53,18 +53,16 @@
   </div>{% else %}<p>Ainda não existem tentativas.</p>{% endif %}
 </section>
 <section class="card details">
-  <h2>Nota sobre TCP</h2>
-  <p>A criação de uma ligação TCP está demonstrada separadamente em <code>network/server.py</code>. A interface
-    principal continua a ser a web.</p>
-</section>
-<section class="card details">
-  <h2>Criar sessão TCP</h2>
-  <p>Escolha os dados e copie o comando para iniciar o servidor no terminal.</p>
+  <h2>Servidor TCP</h2>
+  <p>A demonstração TCP está em <code>network/server.py</code>. A interface
+    principal continua a ser a web. Na web, a sessão usa uma Queue com 5 perguntas.
+    No TCP, existe comunicação cliente-servidor com autenticação, pergunta,
+    resposta, score, ranking e estatísticas. A sessão TCP parametrizada fica como
+    melhoria futura.</p>
+  <p>Copie o comando para iniciar o servidor TCP no terminal:</p>
   <form method="post" class="form-grid">
     <label>Host <input name="host" value="127.0.0.1"></label>
     <label>Porta <input name="port" type="number" value="5001"></label>
-    <label>Nível <select name="level"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
-    <label>Perguntas <input name="questions" type="number" min="1" max="10" value="5"></label>
     <button class="button" type="submit">Gerar comando TCP</button>
   </form>
   {% if tcp_command %}<p><code>{{ tcp_command }}</code></p>{% endif %}

@@ -152,7 +152,7 @@ A rota `http://127.0.0.1:5000/teacher` é uma página pública e simples, sem au
 - ranking Top 5;
 - tentativas recentes de todos os alunos.
 
-Também gera um comando TCP com host, porta, nível e número de perguntas para o
+Também gera um comando TCP com host e porta para o
 professor copiar para o terminal.
 
 ## Demonstração TCP
@@ -214,17 +214,18 @@ python network/server.py
 python network/client.py
 ```
 
-O servidor TCP aceita os argumentos `--host`, `--port`, `--level` e `--questions`,
-mas atualmente a demonstração responde a uma pergunta de cada vez — o nível é
-enviado pelo cliente no pedido `QUESTION_REQUEST`. A parametrização completa
-de uma sessão TCP com várias perguntas pode ser considerada melhoria futura.
-
 ```powershell
 py -3 network/server.py --host 127.0.0.1 --port 5001
 py -3 network/client.py --host 127.0.0.1 --port 5001
 ```
 
 O Flask usa a porta `5000` e o TCP usa a porta `5001`, por isso podem funcionar ao mesmo tempo. Não é um jogo online completo e não está integrado com a interface web.
+
+Na versão web, a sessão de jogo usa uma Queue com 5 perguntas. Na versão TCP,
+existe uma demonstração cliente-servidor com autenticação, envio de pergunta,
+resposta, atualização de score, ranking e estatísticas. A parametrização
+completa de uma sessão TCP com várias perguntas por nível e quantidade fica
+como melhoria futura.
 
 ## Testes
 

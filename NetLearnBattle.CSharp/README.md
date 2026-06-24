@@ -142,6 +142,34 @@ académica.
 - Evolução de score agregada por sessão: nível, perguntas, certas, erradas,
   pontos da sessão e score final
 
+### Testes Robot Framework da versão C#
+
+Testes funcionais com Robot Framework + Selenium que validam a aplicação web C# em cenários reais:
+
+- `NetLearnBattle.CSharp.Tests/Robot/web_csharp_e2e.robot` — fluxo completo: registo, login, jogar, histórico, estatísticas, ranking, teacher, logout
+- `NetLearnBattle.CSharp.Tests/Robot/web_csharp_session.robot` — sessão de 5 perguntas com resumo
+- `NetLearnBattle.CSharp.Tests/Robot/web_csharp_invalids.robot` — páginas protegidas, login errado, páginas públicas
+- `NetLearnBattle.CSharp.Tests/Robot/web_csharp_persistence.robot` — dados mantêm-se entre sessões
+
+Os testes:
+- Usam porta **5012** (não conflitua com a app normal na porta 5002)
+- Iniciam a aplicação C# automaticamente com `dotnet run --urls http://127.0.0.1:5012`
+- Usam `resources/csharp_common.resource` com keywords partilhadas
+- Guardam logs em `NetLearnBattle.CSharp.Tests/Robot/results/`
+
+Pré-requisitos:
+- Python 3 com Robot Framework e SeleniumLibrary instalados
+- ChromeDriver no PATH
+
+```powershell
+pip install robotframework selenium robotframework-seleniumlibrary
+```
+
+Executar todos os testes:
+```powershell
+robot --outputdir NetLearnBattle.CSharp.Tests/Robot/results NetLearnBattle.CSharp.Tests/Robot
+```
+
 ### Fase 6 — Testes unitários (concluída)
 
 - Projeto de testes: `NetLearnBattle.CSharp.Tests/` (xUnit)

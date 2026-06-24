@@ -7,6 +7,14 @@ Data/sessions.json
 # Logs temporários
 csharp_*.txt
 
+# Robot Framework results
+NetLearnBattle.CSharp.Tests/Robot/results/
+NetLearnBattle.CSharp.Tests/Robot/results/*
+selenium-screenshot-*.png
+chromedriver.log
+csharp-web-output.log
+csharp-web-error.log
+
 # .NET
 bin/
 obj/

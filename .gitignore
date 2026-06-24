@@ -244,3 +244,7 @@ csharp_error*.txt
 **/bin/
 **/obj/
 **/TestResults/
+
+# Robot Framework results da versão C#.
+NetLearnBattle.CSharp.Tests/Robot/results/*
+!NetLearnBattle.CSharp.Tests/Robot/results/.gitkeep

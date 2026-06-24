@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Modo treino</p><h1>Repetir perguntas erradas</h1><p>Este modo usa os seus erros anteriores (de attempts.json) para treinar. Não altera o score.</p></section>
+
+{% if empty %}
+  <section class="card"><p>Ainda não tem perguntas erradas guardadas para treinar. <a href="{{ url_for('play') }}">Jogue uma sessão</a> primeiro.</p></section>
+{% else %}
+  {% if result %}
+    <section class="result-card {{ 'good' if result.is_correct else 'bad' }}">
+      <h2>{% if result.is_correct %}Acertou desta vez!{% else %}Ainda errado{% endif %}</h2>
+      <p>{{ answered_question }}</p>
+      <p>Resposta correta: <strong>{{ result.correct_answer }}</strong></p>
+    </section>
+  {% endif %}
+
+  {% if question %}
+    <section class="question-card">
+      <p class="eyebrow">Nível {{ question.level }} · {{ question.topic }} · faltam {{ remaining }}</p>
+      <p class="question">{{ question.question }}</p>
+      <form method="post" action="{{ url_for('training_answer') }}">
+        {% for option in question.options %}
+          <label class="option"><input type="radio" name="choice" value="{{ loop.index0 }}" required><span>{{ option }}</span></label>
+        {% endfor %}
+        <button class="button" type="submit">Confirmar resposta</button>
+      </form>
+    </section>
+  {% else %}
+    <section class="card"><p>Treino concluído. <a href="{{ url_for('training') }}">Treinar de novo</a> ou <a href="{{ url_for('dashboard') }}">voltar ao dashboard</a>.</p></section>
+  {% endif %}
+{% endif %}
+{% endblock %}

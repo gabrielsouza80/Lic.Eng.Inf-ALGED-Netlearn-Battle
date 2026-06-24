@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Dados de execução do NetLearn Battle (gerados pela app; usar os ficheiros .example.json como modelo)
+data/users.json
+data/scores.json
+data/attempts.json
+data/sessions.json

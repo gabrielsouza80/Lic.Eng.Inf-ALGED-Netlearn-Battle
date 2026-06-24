@@ -41,3 +41,15 @@ Abrir Página de Ranking
 Dashboard Exige Login
     Go To    ${BASE_URL}/dashboard
     Location Should Contain    /login
+
+Treino Exige Login
+    Go To    ${BASE_URL}/training
+    Location Should Contain    /login
+
+Abrir Página do Professor
+    Go To    ${BASE_URL}/teacher
+    Page Should Contain    Professor
+
+Página do Professor Mostra Quartis
+    Go To    ${BASE_URL}/teacher
+    Page Should Contain    quartis

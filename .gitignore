@@ -238,7 +238,12 @@ data/sessions.json
 
 # Registos temporários gerados ao testar a versão C#.
 csharp_output*.txt
+csharp_output*.log
 csharp_error*.txt
+csharp_error*.log
+csharp-output.log
+csharp-error.log
+chromedriver.log
 
 # Saídas de compilação e resultados de testes dos projetos .NET.
 **/bin/

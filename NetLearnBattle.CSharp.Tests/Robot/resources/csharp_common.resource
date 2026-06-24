@@ -38,6 +38,7 @@ Preparar Caminhos Do Projeto CSharp
     ${robot_dir}=    Evaluate    os.path.abspath(os.path.join(r'''${CURDIR}''', '..'))    os
     ${results_dir}=    Set Variable    ${robot_dir}${/}results
     Set Suite Variable    ${ROBOT_RESULTS_DIR}    ${results_dir}
+    Create Directory    ${ROBOT_RESULTS_DIR}
 
 Iniciar Servidor CSharp
     Preparar Caminhos Do Projeto CSharp
@@ -46,12 +47,15 @@ Iniciar Servidor CSharp
     Run Keyword And Ignore Error    Remove File    ${output_log}
     Run Keyword And Ignore Error    Remove File    ${error_log}
     Directory Should Exist    ${CSPROJ_DIR}
-    ${dotnet}=    Set Variable    C:/Program Files/dotnet/dotnet.exe
-    File Should Exist    ${dotnet}
+    ${windows_dotnet}=    Set Variable    C:/Program Files/dotnet/dotnet.exe
+    ${has_windows_dotnet}=    Run Keyword And Return Status    File Should Exist    ${windows_dotnet}
+    IF    ${has_windows_dotnet}
+        ${dotnet}=    Set Variable    ${windows_dotnet}
+    ELSE
+        ${dotnet}=    Set Variable    dotnet
+    END
     ${process}=    Start Process    ${dotnet}    run    --urls    http://127.0.0.1:5012
     ...    cwd=${CSPROJ_DIR}    alias=csharp    stdout=${output_log}    stderr=${error_log}
-    Sleep    10 seconds    Aguardar aplicação C# iniciar
-
     Set Suite Variable    ${CSPROJ_PROCESS}    ${process}
 
 Terminar Servidor CSharp

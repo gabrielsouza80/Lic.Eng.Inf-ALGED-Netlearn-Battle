@@ -3,6 +3,7 @@ import time
 
 from services.json_service import load, save
 from services.score_service import ScoreService
+from services.question_generator import generate_network_question
 from structures.queue import Queue
 from structures.stack import Stack
 
@@ -41,6 +42,22 @@ class GameService:
         for question in questions:
             queue.enqueue(question)
         return queue.dequeue()
+
+    def create_session_questions(self, level, amount=5):
+        """Cria uma fila curta de perguntas para uma sessão local do aluno."""
+        queue = Queue()
+        if level in (1, 2, 3, 4):
+            for _ in range(amount):
+                queue.enqueue(generate_network_question(level))
+        else:
+            # ACL continua a vir obrigatoriamente de acls.json.
+            question = self.create_question(level)
+            if question is not None:
+                queue.enqueue(question)
+        questions = []
+        while not queue.is_empty():
+            questions.append(queue.dequeue())
+        return questions
 
     def save_attempt(self, username, question, selected_index, started_at):
         """[Secções 14, 25 e 27] Corrige e guarda uma tentativa."""

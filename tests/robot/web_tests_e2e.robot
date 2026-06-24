@@ -31,6 +31,8 @@ Fluxo End To End Do Projeto
     Responder Ao Nível    3    1    30    Resposta correta
     Responder Ao Nível    4    1    40    Resposta correta
     Responder Ao Nível    5    0    50    Resposta correta
+    # Erro normal: opção válida, mas diferente da resposta certa.
+    Responder Ao Nível    1    1    -5    Resposta incorreta    192.168.1.0
 
     # Depois do jogo, usa os botões do dashboard para consultar uma página de cada vez.
     Click Element    css:a[href="/dashboard"]
@@ -45,10 +47,23 @@ Fluxo End To End Do Projeto
     Click Element    css:nav a[href="/dashboard"]
     Click Element    css:a[href="/stats"]
     Page Should Contain Element    xpath=//h1[normalize-space()='Estatísticas']
+    ${personal_stats}=    Obter Estatísticas Pessoais    ${ACTIVE_USER}
     ${displayed_total}=    Get Text    css:[data-testid="stat-total"] strong
-    Should Be Equal As Integers    ${displayed_total}    ${attempts}
-    Mostrar Validação    Estatísticas mostram total igual ao histórico.
+    ${expected_total}=    Get From Dictionary    ${personal_stats}    total
+    ${expected_correct}=    Get From Dictionary    ${personal_stats}    correct
+    ${expected_wrong}=    Get From Dictionary    ${personal_stats}    wrong
+    ${expected_accuracy}=    Get From Dictionary    ${personal_stats}    accuracy
+    ${expected_score}=    Obter Score Do Utilizador    ${ACTIVE_USER}
+    Should Be Equal As Integers    ${displayed_total}    ${expected_total}
+    Element Text Should Be    css:[data-testid="stat-correct"] strong    ${expected_correct}
+    Element Text Should Be    css:[data-testid="stat-wrong"] strong    ${expected_wrong}
+    Element Text Should Be    css:[data-testid="stat-accuracy"] strong    ${expected_accuracy}%
+    # O score aparece numa frase fixa; a verificação completa evita depender da
+    # estrutura visual interna do cartão de estatísticas.
+    Page Should Contain    Score atual: ${expected_score} pontos
+    Mostrar Validação    Estatísticas mostram totais, taxa e score calculados corretamente.
     Click Element    css:nav a[href="/dashboard"]
+    Garantir Três Jogadores Com Tentativas
     Click Element    css:a[href="/ranking"]
     Page Should Contain Element    xpath=//h1[normalize-space()='Ranking Top 5']
     ${expected_top_five}=    Obter Top 5 Esperado
@@ -67,8 +82,15 @@ Fluxo End To End Do Projeto
     ${all_attempts}=    Evaluate    json.loads($content)    json
     ${expected_global_total}=    Get Length    ${all_attempts}
     ${teacher_total}=    Get Text    css:[data-testid="teacher-total"] strong
+    ${global_stats}=    Obter Estatísticas Globais
+    ${expected_global_correct}=    Get From Dictionary    ${global_stats}    correct
+    ${expected_global_wrong}=    Get From Dictionary    ${global_stats}    wrong
+    ${expected_global_accuracy}=    Get From Dictionary    ${global_stats}    accuracy
     Should Be Equal As Integers    ${teacher_total}    ${expected_global_total}
-    Mostrar Validação    Área do professor mostra o total global correto.
+    Page Should Contain Element    xpath=//div[contains(@class, 'stat')][.//span[normalize-space()='Respostas certas']]//strong[normalize-space()='${expected_global_correct}']
+    Page Should Contain Element    xpath=//div[contains(@class, 'stat')][.//span[normalize-space()='Respostas erradas']]//strong[normalize-space()='${expected_global_wrong}']
+    Page Should Contain Element    xpath=//div[contains(@class, 'stat')][.//span[normalize-space()='Taxa global']]//strong[normalize-space()='${expected_global_accuracy}%']
+    Mostrar Validação    Área do professor mostra totais e taxa global corretos.
     Click Element    css:nav a[href="/rules"]
     Page Should Contain Element    xpath=//h1[normalize-space()='Regras']
     Page Should Contain    +50

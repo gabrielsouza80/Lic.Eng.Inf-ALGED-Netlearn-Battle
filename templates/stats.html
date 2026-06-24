@@ -14,11 +14,11 @@
 </section>
 <section class="card details">
   <h2>Tempo de resposta</h2>
-  <p>Média: <strong>{{ stats.mean_time }} s</strong></p>
-  <p>Mediana: <strong>{{ stats.median_time }} s</strong></p>
-  <p>Moda: <strong>{{ stats.mode_time }}{% if stats.mode_time is number %} s{% endif %}</strong></p>
-  <p>Tópico com mais dificuldade: <strong>{{ stats.weakest_topic }}</strong></p>
-  <p>Score atual: <strong>{{ score }} pontos</strong></p>
+  <p>Média: <strong data-testid="stat-mean">{{ stats.mean_time }} s</strong></p>
+  <p>Mediana: <strong data-testid="stat-median">{{ stats.median_time }} s</strong></p>
+  <p>Moda: <strong data-testid="stat-mode">{{ stats.mode_time }}{% if stats.mode_time is number %} s{% endif %}</strong></p>
+  <p>Tópico com mais dificuldade: <strong data-testid="stat-weakest-topic">{{ stats.weakest_topic }}</strong></p>
+  <p>Score atual: <strong data-testid="stat-score">{{ score }} pontos</strong></p>
 </section>
 <section class="card details">
   <h2>Taxa de acerto por nível</h2>{% for level, rate in stats.accuracy_by_level.items() %}<p>Nível {{ level }}

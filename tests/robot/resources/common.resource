@@ -5,6 +5,7 @@ Library          Process
 Library          OperatingSystem
 Library          DateTime
 Library          Collections
+Library          String
 
 *** Variables ***
 # A aplicação de testes usa a porta 5002; a aplicação normal pode usar a 5000.
@@ -24,16 +25,17 @@ Iniciar Registo No Console
     Log To Console    \n========== [TESTE] ${TEST NAME} ==========
 
 Finalizar Registo No Console
-    Log To Console    [RESULTADO] ${TEST NAME}: ${TEST STATUS}
+    Log To Console    \n[RESULTADO] ${TEST NAME}: ${TEST STATUS}
 
 Mostrar Passo
     [Arguments]    ${message}
-    Log To Console    [PASSO] ${message}
+    # A quebra inicial evita que o texto fique misturado com o resumo do Robot.
+    Log To Console    \n[PASSO] ${message}
     Log    [PASSO] ${message}
 
 Mostrar Validação
     [Arguments]    ${message}
-    Log To Console    [VALIDAR] ${message}
+    Log To Console    \n[VALIDAR] ${message}
     Log    [VALIDAR] ${message}
 
 Preparar Caminhos Do Projeto
@@ -59,7 +61,11 @@ Iniciar Servidor Real
     Iniciar Servidor Flask
 
 Abrir Navegador
-    Open Browser    about:blank    chrome
+    # ChromeDriver escreve mensagens técnicas (DevTools e TensorFlow) no terminal.
+    # Estas opções reduzem o ruído e guardam o restante no ficheiro de resultados.
+    ${driver_log}=    Set Variable    ${CURDIR}${/}..${/}results${/}chromedriver.log
+    ${chrome_service}=    Evaluate    selenium.webdriver.chrome.service.Service(log_output=r'''${driver_log}''')    modules=selenium.webdriver.chrome.service
+    Open Browser    about:blank    chrome    options=add_argument('--log-level=3');add_experimental_option('excludeSwitches',['enable-logging'])    service=${chrome_service}
     Maximize Browser Window
     Set Selenium Speed    ${VISUAL_SPEED}
     Wait Until Keyword Succeeds    10x    1 second    Confirmar Aplicação Ativa
@@ -121,7 +127,11 @@ Iniciar Servidor Flask
     ${error_log}=    Set Variable    ${CURDIR}${/}..${/}results${/}flask-error.log
     Run Keyword And Ignore Error    Remove File    ${output_log}
     Run Keyword And Ignore Error    Remove File    ${error_log}
-    Start Process    py    -3    app.py    cwd=${PROJECT_DIR}    alias=flask    env:FLASK_PORT=5002    stdout=${output_log}    stderr=${error_log}
+    # `py -3` cria um processo intermediário no Windows. Descobrimos primeiro o
+    # executável real para o Teardown conseguir fechar exatamente o Flask certo.
+    ${python_result}=    Run Process    py    -3    -c    import sys; print(sys.executable)
+    ${python_executable}=    Strip String    ${python_result.stdout}
+    Start Process    ${python_executable}    app.py    cwd=${PROJECT_DIR}    alias=flask    env:FLASK_PORT=5002    stdout=${output_log}    stderr=${error_log}
 Terminar Ambiente de Teste
     Fechar Navegador
     Terminar Servidor De Teste
@@ -187,7 +197,7 @@ Confirmar Página Protegida Exige Login
     Mostrar Validação    Página bloqueada e aviso de login apresentado.
 
 Responder Ao Nível
-    [Arguments]    ${level}    ${answer_index}    ${points}    ${result_message}
+    [Arguments]    ${level}    ${answer_index}    ${points}    ${result_message}    ${correct_answer}=${NONE}
     Mostrar Passo    Nível ${level}: escolher opção ${answer_index}; esperado ${result_message}, ${points} pontos.
     ${score_before}=    Obter Score Do Utilizador    ${ACTIVE_USER}
     ${attempts_before}=    Obter Número De Tentativas Do Utilizador    ${ACTIVE_USER}
@@ -198,6 +208,10 @@ Responder Ao Nível
     Click Button    Confirmar resposta
     Wait Until Page Contains Element    xpath=//h1[normalize-space()='${result_message}']    5 seconds
     Page Should Contain    ${points} pontos
+    IF    $correct_answer is not None
+        # Confirma o feedback correto quando o aluno escolhe uma opção errada.
+        Page Should Contain    A resposta correta era: ${correct_answer}
+    END
     ${score_after}=    Obter Score Do Utilizador    ${ACTIVE_USER}
     ${attempts_after}=    Obter Número De Tentativas Do Utilizador    ${ACTIVE_USER}
     ${expected_score}=    Evaluate    int($score_before) + int($points)
@@ -220,13 +234,25 @@ Obter Número De Tentativas Do Utilizador
     ${count}=    Evaluate    sum(1 for attempt in $attempts if attempt["username"] == "${username}")
     RETURN    ${count}
 
+Obter Estatísticas Pessoais
+    [Arguments]    ${username}
+    # RobotCode pode usar um Python fora da pasta do projeto. Adicionamos a raiz
+    # antes do import para calcular o valor esperado com o mesmo StatsService.
+    ${stats}=    Evaluate    __import__('sys').path.insert(0, r'''${PROJECT_DIR}''') or __import__('services.stats_service', fromlist=['StatsService']).StatsService().personal_statistics($username)
+    RETURN    ${stats}
+
+Obter Estatísticas Globais
+    ${stats}=    Evaluate    __import__('sys').path.insert(0, r'''${PROJECT_DIR}''') or __import__('services.stats_service', fromlist=['StatsService']).StatsService().global_statistics()
+    RETURN    ${stats}
+
 Obter Última Tentativa
     ${content}=    Get File    ${ACTIVE_DATA_DIR}${/}attempts.json
     ${attempt}=    Evaluate    json.loads($content)[-1]    json
     RETURN    ${attempt}
 
 Garantir Três Jogadores Com Tentativas
-    # Ranking é uma exceção ao login único: para testar várias pessoas, cada nova conta joga uma vez.
+    # Para verificar uma ordenação real, existem pelo menos três contas com jogadas.
+    ${original_user}=    Set Variable    ${ACTIVE_USER}
     ${content}=    Get File    ${ACTIVE_DATA_DIR}${/}attempts.json
     ${attempts}=    Evaluate    json.loads($content)    json
     ${players}=    Evaluate    sorted(set(attempt["username"] for attempt in $attempts))
@@ -240,6 +266,9 @@ Garantir Três Jogadores Com Tentativas
         Responder Ao Nível    1    0    10    Resposta correta
         Click Element    css:nav a[href="/logout"]
     END
+    # O E2E continua com a conta original depois de preparar o ranking.
+    Set Suite Variable    ${ACTIVE_USER}    ${original_user}
+    Fazer Login    ${ACTIVE_USER}    ${SESSION_PASSWORD}
 
 Obter Top 5 Esperado
     ${content}=    Get File    ${ACTIVE_DATA_DIR}${/}scores.json

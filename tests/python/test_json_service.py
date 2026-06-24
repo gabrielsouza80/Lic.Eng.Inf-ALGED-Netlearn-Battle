@@ -21,6 +21,15 @@ class JsonServiceTests(unittest.TestCase):
             self.assertEqual(load(filename, []), [])
             self.assertTrue(os.path.exists(filename))
 
+    def test_invalid_json_raises_clear_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            filename = os.path.join(directory, "invalid.json")
+            # Simula um ficheiro alterado manualmente com sintaxe JSON inválida.
+            with open(filename, "w", encoding="utf-8") as file:
+                file.write("{isto não é JSON}")
+            with self.assertRaises(ValueError):
+                load(filename, {})
+
 
 if __name__ == "__main__":
     unittest.main()

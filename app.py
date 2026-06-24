@@ -93,17 +93,35 @@ def play():
             level = int(request.form.get("level", ""))
         except ValueError:
             level = 0
-        question = game.create_question(level)
-        if question is None:
+        questions = game.create_session_questions(level)
+        if not questions:
             flash("Não existem perguntas para este nível.", "error")
             return redirect(url_for("play"))
+        question = questions.pop(0)
         # Guardamos a pergunta atual na sessão até o aluno enviar a resposta.
         session["question"] = question
+        session["question_queue"] = questions
         session["started_at"] = time.time()
         # get dá um nome seguro mesmo se uma pergunta JSON tiver um nível novo.
         return render_template("play.html", question=question,
                                level_name=LEVELS.get(level, f"Nível {level}"))
     return render_template("play.html", levels=LEVELS)
+
+
+@app.route("/next")
+@login_required
+def next_question():
+    """Retira a próxima pergunta da fila criada para a sessão atual."""
+    questions = session.get("question_queue", [])
+    if not questions:
+        flash("A fila deste nível terminou. Escolha outro nível.", "success")
+        return redirect(url_for("play"))
+    session["question"] = questions.pop(0)
+    session["question_queue"] = questions
+    session["started_at"] = time.time()
+    question = session["question"]
+    return render_template("play.html", question=question,
+                           level_name=LEVELS.get(question["level"], "Nível"))
 
 
 @app.route("/answer", methods=["POST"])

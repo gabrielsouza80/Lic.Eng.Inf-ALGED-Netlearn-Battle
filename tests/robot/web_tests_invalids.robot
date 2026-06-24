@@ -9,7 +9,7 @@ Test Teardown    Finalizar Teste Com Navegador
 *** Test Cases ***
 Login Inicial Para Testes Inválidos Com Sessão
     [Tags]    negativo    autenticacao
-    # Único login bem-sucedido. Os testes seguintes usam esta sessão.
+    # Cada caso abre um navegador próprio; este caso prova que uma sessão válida é criada.
     Fazer Login    ${ACTIVE_USER}    ${SESSION_PASSWORD}
     Page Should Contain Element    xpath=//h1[normalize-space()='O seu painel']
     Mostrar Validação    Sessão válida criada para testar ações inválidas autenticadas.
@@ -97,6 +97,24 @@ Validações Sem Login Num Único Fluxo
     Click Button    Entrar
     Wait Until Page Contains    Utilizador ou password incorretos.    5 seconds
     Go To    ${BASE_URL}/register
+    Input Text    name=username    ab
+    Input Password    name=password    ${SESSION_PASSWORD}
+    Execute JavaScript    document.querySelector('form').submit();
+    Page Should Contain    O utilizador deve ter pelo menos 3 caracteres alfanuméricos.
+    Clear Element Text    name=username
+    Clear Element Text    name=password
+    Input Text    name=username    nome invalido
+    Input Password    name=password    ${SESSION_PASSWORD}
+    Execute JavaScript    document.querySelector('form').submit();
+    Page Should Contain    O utilizador deve ter pelo menos 3 caracteres alfanuméricos.
+    Clear Element Text    name=username
+    Clear Element Text    name=password
+    Input Text    name=username    utilizador_valido
+    Input Password    name=password    123
+    Execute JavaScript    document.querySelector('form').submit();
+    Page Should Contain    A password deve ter pelo menos 4 caracteres.
+    Clear Element Text    name=username
+    Clear Element Text    name=password
     Input Text    name=username    ${ACTIVE_USER}
     Input Password    name=password    ${SESSION_PASSWORD}
     Click Button    Registar

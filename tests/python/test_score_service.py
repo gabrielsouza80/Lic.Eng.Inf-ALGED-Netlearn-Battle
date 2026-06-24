@@ -25,6 +25,17 @@ class ScoreServiceTests(unittest.TestCase):
             ranking = service.top_five()
             self.assertEqual([item["username"] for item in ranking], ["fabio", "bruno", "diana", "ana", "edu"])
 
+    def test_invalid_score_does_not_break_ranking(self):
+        # Um ficheiro JSON pode ser alterado manualmente. Um valor inválido não
+        # deve impedir a página de ranking de mostrar os restantes alunos.
+        with tempfile.TemporaryDirectory() as directory:
+            filename = os.path.join(directory, "scores.json")
+            from services.json_service import save
+            save(filename, {"ana": 10, "valor_errado": "dez"})
+            service = ScoreService(filename)
+            self.assertEqual(service.get_score("valor_errado"), 0)
+            self.assertEqual(service.top_five(), [{"username": "ana", "score": 10}])
+
 
 if __name__ == "__main__":
     unittest.main()

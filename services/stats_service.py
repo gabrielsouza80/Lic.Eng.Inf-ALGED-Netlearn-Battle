@@ -8,6 +8,15 @@ from services.json_service import load
 class StatsService:
     def calculate(self, attempts):
         """[Secções 30 a 33] Calcula estatísticas de uma lista de tentativas."""
+        # attempts.json é persistência simples. Se um registo estiver incompleto,
+        # ele não entra no cálculo, mas os restantes dados continuam disponíveis.
+        attempts = [attempt for attempt in attempts
+                    if isinstance(attempt, dict)
+                    and isinstance(attempt.get("is_correct"), bool)
+                    and isinstance(attempt.get("level"), int)
+                    and isinstance(attempt.get("topic"), str)
+                    and isinstance(attempt.get("response_time_seconds"), (int, float))
+                    and not isinstance(attempt.get("response_time_seconds"), bool)]
         if not attempts:
             return {"total": 0, "correct": 0, "wrong": 0, "accuracy": 0,
                     "accuracy_by_level": {}, "mean_time": 0, "median_time": 0,
@@ -42,7 +51,8 @@ class StatsService:
 
     def personal_statistics(self, username):
         # [Secção 30] Filtra as tentativas para mostrar só dados do aluno.
-        attempts = [item for item in load("attempts.json", []) if item["username"] == username]
+        attempts = [item for item in load("attempts.json", [])
+                    if isinstance(item, dict) and item.get("username") == username]
         return self.calculate(attempts)
 
     def global_statistics(self):

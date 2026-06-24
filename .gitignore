@@ -202,6 +202,7 @@ cython_debug/
 # .vscode/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
+.vscode/launch.json
 
 # Ruff stuff:
 .ruff_cache/
@@ -217,6 +218,12 @@ __marimo__/
 # Resultados e dados temporários dos testes Robot.
 tests/robot/results/*
 !tests/robot/results/.gitkeep
+
+# Estado criado durante a utilização e pelos testes Robot.
+# questions.json e acls.json continuam versionados porque são conteúdo do jogo.
+data/users.json
+data/scores.json
+data/attempts.json
 
 # Streamlit
 .streamlit/secrets.toml

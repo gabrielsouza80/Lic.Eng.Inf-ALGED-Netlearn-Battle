@@ -100,7 +100,9 @@ def play():
         # Guardamos a pergunta atual na sessão até o aluno enviar a resposta.
         session["question"] = question
         session["started_at"] = time.time()
-        return render_template("play.html", question=question, level_name=LEVELS[level])
+        # get dá um nome seguro mesmo se uma pergunta JSON tiver um nível novo.
+        return render_template("play.html", question=question,
+                               level_name=LEVELS.get(level, f"Nível {level}"))
     return render_template("play.html", levels=LEVELS)
 
 
@@ -117,7 +119,13 @@ def answer():
         selected_index = int(request.form.get("choice", "-1"))
     except ValueError:
         selected_index = -1
-    result = game.save_attempt(session["username"], question, selected_index, started_at)
+    try:
+        result = game.save_attempt(session["username"], question, selected_index, started_at)
+    except ValueError as error:
+        # Se um ficheiro JSON tiver sido alterado para um formato inválido, a
+        # aplicação informa o problema em vez de apresentar uma página de erro.
+        flash(str(error), "error")
+        return redirect(url_for("play"))
     return render_template("result.html", result=result, level=question["level"], question=question["question"])
 
 

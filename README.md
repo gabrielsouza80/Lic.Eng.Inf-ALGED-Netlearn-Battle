@@ -11,7 +11,7 @@ O projeto foi pensado para ser fácil de entender e apresentar num contexto acad
 ```powershell
 cd C:\Faculdade\Interdisciplinaryproject2
 pip install -r requirements.txt
-python app.py
+py -3 app.py
 ```
 
 Abra `http://127.0.0.1:5000` no navegador.
@@ -119,16 +119,21 @@ Os testes Python validam a lógica interna do projeto. Os testes Robot validam a
 ### Testes Python com unittest
 
 ```powershell
-python -m unittest discover -s tests/python -v
+py -3 -m unittest discover -s tests/python -v
 ```
 
 Estes testes verificam:
 
 - Queue com comportamento FIFO;
 - Stack com comportamento LIFO;
-- atualização de score;
+- registo, hash, salt e login;
+- atualização de score e ordenação do ranking;
 - estatísticas básicas;
 - leitura e escrita de JSON num ficheiro temporário.
+
+Também existem testes para garantir que um score não numérico ou uma tentativa
+incompleta não derrubam as páginas de ranking e estatísticas. Registos inválidos
+simplesmente não entram nesses cálculos.
 
 ### Testes funcionais com Robot Framework
 
@@ -141,6 +146,9 @@ Os resultados (`output.xml`, `log.html`, `report.html` e logs Flask) ficam em `t
 Veja também `tests/robot/README.md`: explica a diferença entre o resumo (`report.html`) e os passos detalhados (`log.html`).
 
 Todas as suites Robot usam os ficheiros reais em `data/`. `web_tests_e2e.robot` executa primeiro o fluxo completo: registo, login, os cinco níveis e depois histórico, estatísticas, ranking, professor, regras e logout. Esta é a única suite de fluxos válidos. Os casos inválidos abrem o seu próprio navegador e criam uma sessão própria quando necessário. Por isso, os testes criam contas, scores e tentativas reais.
+
+Na última validação, passaram 13 testes unitários e 8 testes Robot: 1 fluxo E2E,
+6 validações inválidas e 1 teste de persistência.
 
 Todas as suites Robot usam os ficheiros reais em `data/`. A conta usada no teste de persistência está definida em `tests/robot/test_credentials.json`: `gabrielsouza80` com password `808005`. O teste cria a conta se necessário, joga, termina sessão e entra novamente para confirmar persistência.
 
@@ -165,4 +173,5 @@ Flask cria a interface web, mas não guarda dados numa base de dados. Os dados f
 - A área de professor é pública e apenas serve para consulta académica.
 - As perguntas são fixas e carregadas de JSON.
 - A aplicação é académica e não tem segurança profissional completa, por exemplo proteção CSRF nos formulários.
+- Como os dados são ficheiros JSON, não foi criada gestão para muitos utilizadores escreverem ao mesmo tempo.
 - Melhorias futuras: mais perguntas, perguntas aleatórias, melhor gestão de sessões e mais validações de segurança.

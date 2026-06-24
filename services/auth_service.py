@@ -21,7 +21,11 @@ class AuthService:
         if len(password) < 4:
             return False, "A password deve ter pelo menos 4 caracteres."
         users = load(self.filename, [])
-        if any(user["username"].lower() == username.lower() for user in users):
+        if not isinstance(users, list):
+            return False, "users.json deve conter uma lista de utilizadores."
+        # Ignora registos incompletos em vez de deixar um JSON antigo quebrar o registo.
+        if any(isinstance(user, dict) and user.get("username", "").lower() == username.lower()
+               for user in users):
             return False, "Esse utilizador já existe."
         salt = secrets.token_hex(16)
         # A password original nunca é guardada no ficheiro JSON.
@@ -33,6 +37,12 @@ class AuthService:
     def login(self, username, password):
         # [Secção 11] Cria o hash novamente e compara com o valor guardado.
         for user in load(self.filename, []):
+            # Um registo sem os três campos não pode autenticar e é simplesmente
+            # tratado como inválido, sem terminar a página de login com erro.
+            if (not isinstance(user, dict)
+                    or not all(isinstance(user.get(key), str)
+                               for key in ("username", "salt", "password_hash"))):
+                continue
             if user["username"] == username:
                 received_hash = self._hash_password(password, user["salt"])
                 return secrets.compare_digest(received_hash, user["password_hash"])

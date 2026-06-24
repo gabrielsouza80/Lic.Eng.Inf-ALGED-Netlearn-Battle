@@ -13,12 +13,14 @@ class GameService:
 
     def history_for(self, username):
         """[Secção 29] Devolve as tentativas de um utilizador."""
+        # .get evita falha caso exista uma tentativa antiga/incompleta no JSON.
         return [attempt for attempt in load("attempts.json", [])
-                if attempt["username"] == username]
+                if isinstance(attempt, dict) and attempt.get("username") == username]
 
     def recent_attempts(self, limit=20):
         """Devolve as últimas tentativas de todos os alunos para o professor."""
-        return list(reversed(load("attempts.json", [])[-limit:]))
+        attempts = [attempt for attempt in load("attempts.json", []) if isinstance(attempt, dict)]
+        return list(reversed(attempts[-limit:]))
 
     def create_question(self, level):
         """[Secções 14 e 24] Carrega perguntas para Queue e devolve a primeira.
@@ -26,8 +28,15 @@ class GameService:
         Queue é FIFO: a primeira pergunta colocada é a primeira a sair.
         """
         filename = "acls.json" if level == 5 else "questions.json"
+        # As perguntas são conteúdo controlado do projeto. Ainda assim, ignoramos
+        # uma entrada incompleta para a página não falhar por uma edição manual.
+        required_fields = {"level", "topic", "question", "options", "correct_index",
+                           "points_correct", "points_wrong"}
         questions = [question for question in load(filename, [])
-                     if question["level"] == level]
+                     if isinstance(question, dict)
+                     and required_fields.issubset(question)
+                     and isinstance(question.get("options"), list)
+                     and question.get("level") == level]
         queue = Queue()
         for question in questions:
             queue.enqueue(question)
@@ -58,6 +67,8 @@ class GameService:
         stack = Stack()
         stack.push(attempt)
         attempts = load("attempts.json", [])
+        if not isinstance(attempts, list):
+            raise ValueError("attempts.json deve conter uma lista de tentativas.")
         attempts.append(stack.pop())
         save("attempts.json", attempts)
         score = self.scores.add_points(username, points)

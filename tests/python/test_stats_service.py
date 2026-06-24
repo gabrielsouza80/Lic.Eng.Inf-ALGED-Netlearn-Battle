@@ -35,6 +35,16 @@ class StatsServiceTests(unittest.TestCase):
         self.assertEqual(result["accuracy"], 0)
         self.assertEqual(result["mode_time"], "sem dados")
 
+    def test_incomplete_attempt_is_ignored(self):
+        # Garante que um registo manualmente danificado não bloqueia estatísticas.
+        attempts = [
+            {"level": 1, "topic": "IPv4", "is_correct": True, "response_time_seconds": 2},
+            {"username": "sem_campos"},
+        ]
+        result = StatsService().calculate(attempts)
+        self.assertEqual(result["total"], 1)
+        self.assertEqual(result["correct"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

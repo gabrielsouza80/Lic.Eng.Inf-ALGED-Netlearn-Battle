@@ -1,12 +1,12 @@
 """Servidor TCP do NetLearn Battle.
 
 Mensagens do protocolo:
-  AUTH_REQUEST    -> AUTH_RESPONSE
+  AUTH_REQUEST     -> AUTH_RESPONSE
   QUESTION_REQUEST -> QUESTION_PUSH
-  ANSWER_SUBMIT   -> ANSWER_RESULT + SCORE_UPDATE
-  RANKING_REQUEST -> RANKING_RESPONSE
-  STATS_REQUEST   -> STATS_RESPONSE
-  END_SESSION     -> END_SESSION
+  ANSWER_SUBMIT    -> ANSWER_RESULT
+  RANKING_REQUEST  -> RANKING_RESPONSE
+  STATS_REQUEST    -> STATS_RESPONSE
+  END_SESSION      -> END_SESSION
 """
 import json
 import os
@@ -110,8 +110,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Servidor TCP NetLearn Battle")
     parser.add_argument("--host", default=HOST)
     parser.add_argument("--port", type=int, default=PORT)
-    parser.add_argument("--level", type=int, default=1, help="Nível preparado para a sessão")
-    parser.add_argument("--questions", type=int, default=5, help="Quantidade de perguntas por sessão")
     args = parser.parse_args()
-    print(f"Sessão preparada: nível {args.level}, {args.questions} perguntas por aluno.")
     main(args.host, args.port)

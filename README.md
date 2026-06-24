@@ -173,9 +173,9 @@ devolve erro controlado.
 | Cliente envia | Servidor responde | Descrição |
 |---|---|---|
 | `AUTH_REQUEST` | `AUTH_RESPONSE` | Autenticação do utilizador |
-| `QUESTION_REQUEST` | `QUESTION_PUSH` | Pedido de pergunta |
-| `ANSWER_SUBMIT` | `ANSWER_RESULT` + `SCORE_UPDATE` | Submissão de resposta |
-| `SCORE_UPDATE` | `SCORE_UPDATE` | Consulta de score atual |
+| `QUESTION_REQUEST` | `QUESTION_PUSH` | Pedido de pergunta (sem `correct_index`) |
+| `ANSWER_SUBMIT` | `ANSWER_RESULT` | Submissão de resposta; inclui `is_correct`, `points`, `correct_answer` e `score` |
+| `SCORE_UPDATE` | `SCORE_UPDATE` | Consulta separada do score atual |
 | `RANKING_REQUEST` | `RANKING_RESPONSE` | Pedido de ranking |
 | `STATS_REQUEST` | `STATS_RESPONSE` | Pedido de estatísticas |
 | `END_SESSION` | `END_SESSION` | Fim de sessão |
@@ -214,10 +214,13 @@ python network/server.py
 python network/client.py
 ```
 
-Também pode usar argumentos:
+O servidor TCP aceita os argumentos `--host`, `--port`, `--level` e `--questions`,
+mas atualmente a demonstração responde a uma pergunta de cada vez — o nível é
+enviado pelo cliente no pedido `QUESTION_REQUEST`. A parametrização completa
+de uma sessão TCP com várias perguntas pode ser considerada melhoria futura.
 
 ```powershell
-py -3 network/server.py --host 127.0.0.1 --port 5001 --level 1 --questions 5
+py -3 network/server.py --host 127.0.0.1 --port 5001
 py -3 network/client.py --host 127.0.0.1 --port 5001
 ```
 
@@ -261,7 +264,14 @@ Os resultados (`output.xml`, `log.html`, `report.html` e logs Flask) ficam em `t
 
 Veja também `tests/robot/README.md`: explica a diferença entre o resumo (`report.html`) e os passos detalhados (`log.html`).
 
-Todas as suites Robot usam os ficheiros reais em `data/`. `web_tests_e2e.robot` executa primeiro o fluxo completo: registo, login, os cinco níveis e depois histórico, estatísticas, ranking, professor, regras e logout. Esta é a única suite de fluxos válidos. Os casos inválidos abrem o seu próprio navegador e criam uma sessão própria quando necessário. Por isso, os testes criam contas, scores e tentativas reais.
+Os testes Robot validam registo, login, fluxo de jogo, sessão completa de
+5 perguntas, persistência, ranking, estatísticas, área do professor e cenários
+inválidos. `web_tests_e2e.robot` executa o fluxo completo: registo, login, os
+cinco níveis e depois histórico, estatísticas, ranking, professor, regras e
+logout. `web_tests_session.robot` valida uma sessão de 5 perguntas dentro do
+mesmo nível, incluindo o botão "Próxima pergunta" e o resumo final. Os casos
+inválidos abrem o seu próprio navegador e criam uma sessão própria quando
+necessário. Por isso, os testes criam contas, scores e tentativas reais.
 
 Na última validação, passaram 60 testes unitários e 9 testes Robot: 1 fluxo E2E,
 6 validações inválidas, 1 teste de persistência e 1 teste de sessão completa.

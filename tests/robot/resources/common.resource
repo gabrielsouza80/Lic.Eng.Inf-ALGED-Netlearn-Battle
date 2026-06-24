@@ -10,9 +10,32 @@ Library          Collections
 # A aplicação de testes usa a porta 5002; a aplicação normal pode usar a 5000.
 ${BASE_URL}              http://127.0.0.1:5002
 ${SESSION_PASSWORD}      robot123
-${VISUAL_SPEED}          700 milliseconds
+# Ritmo rápido, mas ainda visível: semelhante a uma pessoa a clicar depressa.
+${VISUAL_SPEED}          100 milliseconds
+# Valores iniciais para o RobotCode reconhecer variáveis que o Setup preenche em execução.
+${PROJECT_DIR}           ${EMPTY}
+${ACTIVE_DATA_DIR}       ${EMPTY}
+${ACTIVE_USER}           ${EMPTY}
+${EXISTING_USER}         ${EMPTY}
+${EXISTING_PASSWORD}     ${EMPTY}
 
 *** Keywords ***
+Iniciar Registo No Console
+    Log To Console    \n========== [TESTE] ${TEST NAME} ==========
+
+Finalizar Registo No Console
+    Log To Console    [RESULTADO] ${TEST NAME}: ${TEST STATUS}
+
+Mostrar Passo
+    [Arguments]    ${message}
+    Log To Console    [PASSO] ${message}
+    Log    [PASSO] ${message}
+
+Mostrar Validação
+    [Arguments]    ${message}
+    Log To Console    [VALIDAR] ${message}
+    Log    [VALIDAR] ${message}
+
 Preparar Caminhos Do Projeto
     # Lê as credenciais Gabriel de um JSON, evitando repetir dados no código Robot.
     ${project_dir}=    Evaluate    os.path.abspath(os.path.join(r'''${CURDIR}''', '..', '..', '..'))    os
@@ -27,12 +50,26 @@ Preparar Caminhos Do Projeto
 
 Iniciar Ambiente Real
     # Esta suite usa data/ de propósito: os registos e jogadas ficam nos dados reais.
+    Iniciar Servidor Real
+    Abrir Navegador
+
+Iniciar Servidor Real
     Preparar Caminhos Do Projeto
     Set Suite Variable    ${ACTIVE_DATA_DIR}    ${PROJECT_DIR}${/}data
     Iniciar Servidor Flask
 
+Abrir Navegador
+    Open Browser    about:blank    chrome
+    Maximize Browser Window
+    Set Selenium Speed    ${VISUAL_SPEED}
+    Wait Until Keyword Succeeds    10x    1 second    Confirmar Aplicação Ativa
+
 Iniciar Ambiente Real Com Sessão Nova
-    Iniciar Ambiente Real
+    Iniciar Servidor Real
+    Abrir Navegador Com Sessão Nova
+
+Abrir Navegador Com Sessão Nova
+    Abrir Navegador
     ${created_at}=    Get Current Date    result_format=%Y%m%d_%H%M%S_%f
     ${username}=    Set Variable    aluno_${created_at}
     Set Suite Variable    ${ACTIVE_USER}    ${username}
@@ -41,11 +78,42 @@ Iniciar Ambiente Real Com Sessão Nova
 
 Iniciar Ambiente Real Com Registo Novo
     # Cria a conta no Setup, mas deixa o login para um único caso de teste.
-    Iniciar Ambiente Real
+    Iniciar Servidor Real
+    Abrir Navegador Com Registo Novo
+
+Abrir Navegador Com Registo Novo
+    Abrir Navegador
     ${created_at}=    Get Current Date    result_format=%Y%m%d_%H%M%S_%f
     ${username}=    Set Variable    aluno_invalido_${created_at}
     Set Suite Variable    ${ACTIVE_USER}    ${username}
     Registar Utilizador    ${ACTIVE_USER}    ${SESSION_PASSWORD}
+
+Iniciar Ambiente Real Com Utilizador Novo
+    # A conta é apenas preparada aqui. O primeiro teste end-to-end faz o registo.
+    Iniciar Ambiente Real
+    ${created_at}=    Get Current Date    result_format=%Y%m%d_%H%M%S_%f
+    ${username}=    Set Variable    aluno_e2e_${created_at}
+    Set Suite Variable    ${ACTIVE_USER}    ${username}
+
+Preparar Teste Inválido Sem Sessão
+    Iniciar Registo No Console
+    Abrir Navegador Com Registo Novo
+
+Preparar Teste Inválido Com Sessão
+    Iniciar Registo No Console
+    Abrir Navegador Com Sessão Nova
+
+Finalizar Teste Com Navegador
+    Fechar Navegador
+    Finalizar Registo No Console
+
+Preparar Teste De Persistência
+    Iniciar Registo No Console
+    Iniciar Ambiente Real
+
+Finalizar Teste De Persistência
+    Terminar Ambiente de Teste
+    Finalizar Registo No Console
 
 Iniciar Servidor Flask
     # Remove logs antigos para o relatório mostrar apenas a execução atual.
@@ -54,22 +122,31 @@ Iniciar Servidor Flask
     Run Keyword And Ignore Error    Remove File    ${output_log}
     Run Keyword And Ignore Error    Remove File    ${error_log}
     Start Process    py    -3    app.py    cwd=${PROJECT_DIR}    alias=flask    env:FLASK_PORT=5002    stdout=${output_log}    stderr=${error_log}
-    Open Browser    about:blank    chrome
-    Maximize Browser Window
-    Set Selenium Speed    ${VISUAL_SPEED}
-    Wait Until Keyword Succeeds    10x    1 second    Confirmar Aplicação Ativa
-
 Terminar Ambiente de Teste
+    Fechar Navegador
+    Terminar Servidor De Teste
+
+Fechar Navegador
+    # Fecha a janela deste caso antes de a próxima abrir uma nova sessão.
     Close All Browsers
+
+Terminar Servidor De Teste
     Run Keyword And Ignore Error    Terminate Process    flask    kill=True
+    # Espera o Windows libertar a porta 5002 e os ficheiros de log antes do próximo teste.
+    Run Keyword And Ignore Error    Wait For Process    flask    timeout=5 seconds
 
 Confirmar Aplicação Ativa
     Go To    ${BASE_URL}/
     Title Should Be    NetLearn Battle
 
+Abrir Página Inicial
+    # Cada caso começa numa página conhecida, mas o navegador mantém a sessão do login inicial.
+    Go To    ${BASE_URL}/
+
 Registar Utilizador
     # Esta ação usa o formulário real de registo, não altera JSON diretamente.
     [Arguments]    ${username}    ${password}
+    Mostrar Passo    Registar utilizador ${username}.
     Go To    ${BASE_URL}/register
     Clear Element Text    name=username
     Input Text    name=username    ${username}
@@ -78,10 +155,12 @@ Registar Utilizador
     Click Button    Registar
     Wait Until Keyword Succeeds    5x    500 milliseconds    Location Should Contain    /login
     Page Should Contain    Registo efetuado. Já pode fazer login.
+    Mostrar Validação    Registo aceite e mensagem de sucesso apresentada.
 
 Fazer Login
     # Limpar antes de escrever evita texto residual/autofill do Chrome.
     [Arguments]    ${username}    ${password}
+    Mostrar Passo    Fazer login como ${username}.
     Go To    ${BASE_URL}/login
     Clear Element Text    name=username
     Input Text    name=username    ${username}
@@ -90,6 +169,7 @@ Fazer Login
     Click Button    Entrar
     Wait Until Keyword Succeeds    5x    500 milliseconds    Location Should Contain    /dashboard
     Page Should Contain    Olá, ${username}
+    Mostrar Validação    Login aceite e dashboard apresentado.
 
 Garantir Registo Da Conta Gabriel
     ${content}=    Get File    ${ACTIVE_DATA_DIR}${/}users.json
@@ -100,12 +180,15 @@ Garantir Registo Da Conta Gabriel
 
 Confirmar Página Protegida Exige Login
     [Arguments]    ${path}
+    Mostrar Passo    Tentar abrir ${path} sem autenticação.
     Go To    ${BASE_URL}${path}
     Wait Until Keyword Succeeds    5x    500 milliseconds    Location Should Contain    /login
     Page Should Contain    Faça login para continuar.
+    Mostrar Validação    Página bloqueada e aviso de login apresentado.
 
 Responder Ao Nível
     [Arguments]    ${level}    ${answer_index}    ${points}    ${result_message}
+    Mostrar Passo    Nível ${level}: escolher opção ${answer_index}; esperado ${result_message}, ${points} pontos.
     ${score_before}=    Obter Score Do Utilizador    ${ACTIVE_USER}
     ${attempts_before}=    Obter Número De Tentativas Do Utilizador    ${ACTIVE_USER}
     Go To    ${BASE_URL}/play
@@ -121,6 +204,7 @@ Responder Ao Nível
     ${expected_attempts}=    Evaluate    int($attempts_before) + 1
     Should Be Equal As Integers    ${score_after}    ${expected_score}
     Should Be Equal As Integers    ${attempts_after}    ${expected_attempts}
+    Mostrar Validação    Nível ${level}: resultado, pontos, score e tentativa confirmados.
 
 Obter Score Do Utilizador
     [Arguments]    ${username}

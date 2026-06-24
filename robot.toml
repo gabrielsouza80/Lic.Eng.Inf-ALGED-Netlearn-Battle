@@ -1,3 +1,4 @@
 # Configuração do RobotCode: todos os relatórios ficam dentro de tests/robot.
+# Robot Framework executa os casos sequencialmente; não usamos pabot/paralelismo.
 paths = ["tests/robot"]
 output-dir = "tests/robot/results"

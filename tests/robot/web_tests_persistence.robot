@@ -1,11 +1,12 @@
 *** Settings ***
 Documentation    [Secções 8 a 12 e 38] Conta Gabriel em data/ para validar persistência.
 Resource         resources/common.resource
-Suite Setup      Iniciar Ambiente Real
-Suite Teardown   Terminar Ambiente de Teste
+Test Setup       Preparar Teste De Persistência
+Test Teardown    Finalizar Teste De Persistência
 
 *** Test Cases ***
 Gabriel Regista Joga Sai E Entra Novamente
+    [Tags]    persistencia    autenticacao    score
     # Garante persistência real entre dois logins na mesma conta.
     Garantir Registo Da Conta Gabriel
     Set Suite Variable    ${ACTIVE_USER}    ${EXISTING_USER}
@@ -22,5 +23,7 @@ Gabriel Regista Joga Sai E Entra Novamente
     Should Be Equal As Integers    ${score_after}    ${expected_score}
     Go To    ${BASE_URL}/history
     ${rows}=    Get Element Count    css:[data-testid="history-row"]
-    ${expected_rows}=    Evaluate    int($attempts_before) + 2
+    # A página de histórico apresenta apenas as últimas 20 tentativas.
+    ${expected_rows}=    Evaluate    min(20, int($attempts_before) + 2)
     Should Be Equal As Integers    ${rows}    ${expected_rows}
+    Mostrar Validação    Score e histórico foram mantidos depois de logout e novo login.

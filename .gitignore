@@ -235,3 +235,7 @@ data/users.json
 data/scores.json
 data/attempts.json
 data/sessions.json
+
+# Registos temporários gerados ao testar a versão C#.
+csharp_output*.txt
+csharp_error*.txt

@@ -1,0 +1,15 @@
+# Dados reais locais (nao versionar)
+Data/users.json
+Data/scores.json
+Data/attempts.json
+Data/sessions.json
+
+# Logs temporários
+csharp_*.txt
+
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo

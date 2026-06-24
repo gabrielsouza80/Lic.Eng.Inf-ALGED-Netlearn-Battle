@@ -1,7 +1,5 @@
 # Poster — NetLearn Battle
 
-Conteúdo sugerido para o poster do Projeto Integrador (texto base; adaptar ao layout gráfico).
-
 ## Título
 
 **NetLearn Battle — aprender Redes a jogar**

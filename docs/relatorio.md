@@ -1,6 +1,4 @@
-# Relatório base — NetLearn Battle
-
-Relatório base para a defesa do Projeto Integrador. Pode ser copiado e adaptado.
+# Relatório Técnico — NetLearn Battle
 
 ## 1. Introdução
 

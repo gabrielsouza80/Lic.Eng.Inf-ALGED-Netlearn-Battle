@@ -230,7 +230,7 @@ selenium-screenshot-*.png
 # Credenciais locais de teste (copiar de .example.json).
 tests/robot/test_credentials.json
 
-# Dados de execução gerados pela app (usar os ficheiros .example.json como modelo).
+# Dados de execução gerados pela app (usar os ficheiros .example.json em data/examples/ como modelo).
 data/users.json
 data/scores.json
 data/attempts.json

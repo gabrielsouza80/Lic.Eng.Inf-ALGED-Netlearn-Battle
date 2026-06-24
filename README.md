@@ -36,11 +36,15 @@ Ambos iniciam a aplicação web Flask.
 
 ## Ficheiros JSON
 
-- `data/users.json`: username, salt e hash da password. A password nunca é guardada em texto simples.
-- `data/scores.json`: score atual de cada utilizador.
-- `data/attempts.json`: histórico das respostas, incluindo tópico, resposta escolhida, resposta correta, pontos e tempo.
+Os ficheiros de exemplo ficam em `data/examples/`. Eles mostram a estrutura esperada dos JSONs locais, sem expor dados reais. Os ficheiros reais como `users.json`, `scores.json`, `attempts.json` e `sessions.json` são gerados localmente pela aplicação e ignorados pelo Git.
+
+- `data/users.json`: username, salt e hash da password (gerado localmente). A password nunca é guardada em texto simples.
+- `data/scores.json`: score atual de cada utilizador (gerado localmente).
+- `data/attempts.json`: histórico das respostas, incluindo tópico, resposta escolhida, resposta correta, pontos e tempo (gerado localmente).
+- `data/sessions.json`: sessões ativas dos utilizadores (gerado localmente).
 - `data/questions.json`: perguntas de exemplo para os níveis 1 a 4 (a geração principal é feita pelo código).
 - `data/acls.json`: cenários de ACL para o nível 5.
+- `data/examples/`: contém modelos (`users.example.json`, `scores.example.json`, `attempts.example.json`, `sessions.example.json`) que servem de referência para a estrutura dos ficheiros reais.
 
 As perguntas de IPv4/IPv6 são geradas dinamicamente pelo código com a biblioteca
 `ipaddress`. Os cenários de ACL são carregados de `data/acls.json`.
